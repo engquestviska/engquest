@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>English Quest — Activeness</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:      #0c0c0f;
+      --surface: #131317;
+      --surface2:#1a1a20;
+      --border:  #222228;
+      --accent:  #7c6ffa;
+      --amber:   #e8a030;
+      --text:    #dddde8;
+      --muted:   #5a5a70;
+      --subtle:  #2e2e3a;
+      --success: #34d399;
+      --danger:  #f87171;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      font-size: 14px;
+    }
+
+    /* Sidebar — same as dashboard */
+    .sidebar {
+      width: 210px;
+      flex-shrink: 0;
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-top {
+      padding: 1.75rem 1.5rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .wordmark {
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .school-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 0.3rem;
+      font-weight: 300;
+    }
+
+    .nav {
+      flex: 1;
+      padding: 1.25rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      overflow-y: auto;
+    }
+
+    .nav-group-label {
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 1rem 0.5rem 0.4rem;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.5rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 400;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.12s, background 0.12s;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .nav-link svg { width: 14px; height: 14px; flex-shrink: 0; stroke: currentColor; }
+    .nav-link:hover { color: var(--text); background: var(--surface2); }
+    .nav-link.active { color: var(--text); background: var(--surface2); font-weight: 500; }
+
+    .sidebar-foot {
+      padding: 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .user-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.4rem 0.5rem;
+    }
+
+    .avatar {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--subtle);
+      color: var(--accent);
+      font-size: 0.75rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .user-meta { flex: 1; min-width: 0; }
+    .user-name { font-size: 0.8rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+    .user-role { font-size: 0.68rem; color: var(--muted); }
+
+    .btn-logout {
+      background: none; border: none; cursor: pointer;
+      color: var(--muted); padding: 0.2rem;
+      border-radius: 4px; transition: color 0.12s;
+      display: flex; align-items: center;
+    }
+    .btn-logout:hover { color: var(--danger); }
+    .btn-logout svg { width: 14px; height: 14px; }
+
+    /* Main */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    /* Top bar */
+    .topbar {
+      padding: 1.75rem 2.5rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-shrink: 0;
+    }
+
+    .page-heading {
+      font-size: 1.2rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    /* Class selector */
+    .class-tabs {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .class-tab {
+      padding: 0.35rem 0.85rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--muted);
+      background: none;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+
+    .class-tab:hover { color: var(--text); border-color: var(--subtle); }
+    .class-tab.active { color: var(--text); background: var(--surface2); border-color: var(--accent); }
+
+    /* Search */
+    .search-bar {
+      padding: 0.85rem 2.5rem;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .search-input {
+      width: 100%;
+      max-width: 320px;
+      padding: 0.5rem 0.85rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 0.85rem;
+      font-family: 'DM Sans', sans-serif;
+      outline: none;
+      transition: border-color 0.12s;
+    }
+
+    .search-input::placeholder { color: var(--muted); }
+    .search-input:focus { border-color: var(--accent); }
+
+    /* Category headers */
+    .categories {
+      display: flex;
+      gap: 0;
+      padding: 0 2.5rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
+      overflow-x: auto;
+    }
+
+    .cat-header {
+      font-size: 0.68rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      padding: 0.7rem 0;
+      min-width: 110px;
+      text-align: center;
+    }
+
+    .cat-header:first-child { min-width: 220px; text-align: left; }
+
+    /* Table area */
+    .table-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 2.5rem 2rem;
+    }
+
+    .student-row {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+
+    .student-row:hover { background: var(--surface); }
+
+    .student-name {
+      min-width: 220px;
+      padding: 0.75rem 0;
+      font-size: 0.85rem;
+      font-weight: 400;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding-right: 1rem;
+    }
+
+    .student-name .rank {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-right: 0.4rem;
+    }
+
+    /* Counter control */
+    .counter {
+      min-width: 110px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 0.5rem 0;
+    }
+
+    .counter-btn {
+      width: 22px; height: 22px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: none;
+      color: var(--muted);
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.1s;
+      line-height: 1;
+    }
+
+    .counter-btn:hover { background: var(--surface2); color: var(--text); border-color: var(--subtle); }
+    .counter-btn.plus:hover { color: var(--success); border-color: var(--success); }
+    .counter-btn.minus:hover { color: var(--danger); border-color: var(--danger); }
+
+    .counter-input {
+      width: 36px;
+      text-align: center;
+      background: none;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      color: var(--text);
+      font-size: 0.85rem;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      padding: 0.2rem;
+      outline: none;
+      transition: border-color 0.12s;
+    }
+
+    .counter-input:focus {
+      border-color: var(--accent);
+      background: var(--surface2);
+    }
+
+    /* Save indicator */
+    .save-indicator {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 2rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.6rem 1rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+      display: none;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    }
+
+    .save-indicator.show { display: flex; }
+    .save-indicator.saved { color: var(--success); border-color: var(--success); }
+    .save-indicator.saving { color: var(--amber); border-color: var(--amber); }
+
+    /* Empty/loading */
+    .state-msg {
+      padding: 3rem 0;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-weight: 300;
+    }
+
+    .main { animation: fadeUp 0.25s ease both; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-top">
+    <div class="wordmark">English Quest</div>
+    <div class="school-label">SMA Negeri 6 Surakarta</div>
+  </div>
+  <nav class="nav">
+    <span class="nav-group-label">Main</span>
+    <a class="nav-link" href="/teacher/dashboard.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </a>
+    <a class="nav-link active" href="/teacher/activeness.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      Activeness
+    </a>
+    <a class="nav-link" href="/teacher/scores.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Scores
+    </a>
+    <span class="nav-group-label">Management</span>
+    <a class="nav-link" href="/teacher/submissions.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+      Submissions
+    </a>
+    <a class="nav-link" href="/teacher/attendance.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      Attendance
+    </a>
+    <a class="nav-link" href="/teacher/strikes.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Strikes
+    </a>
+    <a class="nav-link" href="/teacher/materials.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      Materials
+    </a>
+    <a class="nav-link" href="/teacher/gallery.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      Gallery
+    </a>
+  </nav>
+  <div class="sidebar-foot">
+    <div class="user-row">
+      <div class="avatar" id="avatar-initials">—</div>
+      <div class="user-meta">
+        <div class="user-name" id="user-name">Loading</div>
+        <div class="user-role">Teacher</div>
+      </div>
+      <button class="btn-logout" onclick="handleLogout()" title="Log out">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </div>
+</aside>
+
+<!-- Main -->
+<div class="main">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="page-heading">Activeness</div>
+    <div class="class-tabs" id="class-tabs"></div>
+  </div>
+
+  <!-- Search -->
+  <div class="search-bar">
+    <input class="search-input" type="text" id="search" placeholder="Search student..." oninput="filterStudents()">
+  </div>
+
+  <!-- Category headers -->
+  <div class="categories">
+    <div class="cat-header">Student</div>
+    <div class="cat-header">Vocab Box</div>
+    <div class="cat-header">Answering</div>
+    <div class="cat-header">Presenting</div>
+    <div class="cat-header">Task On Time</div>
+    <div class="cat-header">Helping Hand</div>
+    <div class="cat-header">Quiz</div>
+  </div>
+
+  <!-- Student rows -->
+  <div class="table-area" id="table-area">
+    <div class="state-msg">Select a class to begin.</div>
+  </div>
+
+</div>
+
+<!-- Save indicator -->
+<div class="save-indicator" id="save-indicator">
+  <span id="save-text">Saving...</span>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://unbvljjgiqyphtykbkdb.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_DFTQJ5niT0OiWVwpeNwM1A_W18mJ1oT';
+  const { createClient } = supabase;
+  const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const CLASSES = ['XE1','XE4','XE5','XE6','XE7','XE8','XE9','XE10','XE11'];
+  const CATS = ['vocabulary_box','answering','presenting','task_on_time','helping_hand','quiz'];
+
+  let currentClass = null;
+  let students = [];     // { id, full_name, activeness_id, vocab, answering, ... }
+  let saveTimer = null;
+
+  // Auth
+  async function init() {
+    const { data: { user } } = await db.auth.getUser();
+    if (!user) { window.location.href = '/index.html'; return; }
+    if (user.user_metadata?.role !== 'teacher') { window.location.href = '/student/dashboard.html'; return; }
+
+    const name = user.email.split('@')[0];
+    document.getElementById('user-name').textContent = name;
+    document.getElementById('avatar-initials').textContent = name[0].toUpperCase();
+
+    buildClassTabs();
+  }
+
+  function buildClassTabs() {
+    const container = document.getElementById('class-tabs');
+    container.innerHTML = CLASSES.map(cls => `
+      <button class="class-tab" onclick="selectClass('${cls}')">${cls}</button>
+    `).join('');
+  }
+
+  async function selectClass(cls) {
+    currentClass = cls;
+
+    // Update tab UI
+    document.querySelectorAll('.class-tab').forEach(t => {
+      t.classList.toggle('active', t.textContent === cls);
+    });
+
+    document.getElementById('search').value = '';
+    document.getElementById('table-area').innerHTML = '<div class="state-msg">Loading...</div>';
+
+    // Fetch students + their activeness
+    const { data: classData } = await db
+      .from('classes')
+      .select('id')
+      .eq('name', cls)
+      .single();
+
+    if (!classData) return;
+
+    const { data: studentData } = await db
+      .from('students')
+      .select('id, full_name')
+      .eq('class_id', classData.id)
+      .order('full_name');
+
+    if (!studentData || studentData.length === 0) {
+      document.getElementById('table-area').innerHTML = '<div class="state-msg">No students found in this class.</div>';
+      return;
+    }
+
+    const studentIds = studentData.map(s => s.id);
+
+    const { data: activenessData } = await db
+      .from('activeness')
+      .select('*')
+      .in('student_id', studentIds);
+
+    // Map activeness by student_id
+    const actMap = {};
+    (activenessData || []).forEach(a => { actMap[a.student_id] = a; });
+
+    students = studentData.map(s => ({
+      id: s.id,
+      full_name: s.full_name,
+      activeness_id: actMap[s.id]?.id || null,
+      vocabulary_box: actMap[s.id]?.vocabulary_box || 0,
+      answering:      actMap[s.id]?.answering || 0,
+      presenting:     actMap[s.id]?.presenting || 0,
+      task_on_time:   actMap[s.id]?.task_on_time || 0,
+      helping_hand:   actMap[s.id]?.helping_hand || 0,
+      quiz:           actMap[s.id]?.quiz || 0,
+    }));
+
+    renderTable(students);
+  }
+
+  function renderTable(list) {
+    const area = document.getElementById('table-area');
+
+    if (list.length === 0) {
+      area.innerHTML = '<div class="state-msg">No students match your search.</div>';
+      return;
+    }
+
+    area.innerHTML = list.map((s, i) => `
+      <div class="student-row" data-id="${s.id}" data-name="${s.full_name.toLowerCase()}">
+        <div class="student-name">
+          <span class="rank">${String(i + 1).padStart(2,'0')}</span>
+          ${s.full_name}
+        </div>
+        ${CATS.map(cat => `
+          <div class="counter">
+            <button class="counter-btn minus" onclick="adjust('${s.id}','${cat}',-1)">−</button>
+            <input
+              class="counter-input"
+              type="number"
+              min="0"
+              value="${s[cat]}"
+              data-student="${s.id}"
+              data-cat="${cat}"
+              onchange="setDirect('${s.id}','${cat}',this)"
+              onfocus="this.select()"
+            />
+            <button class="counter-btn plus" onclick="adjust('${s.id}','${cat}',1)">+</button>
+          </div>
+        `).join('')}
+      </div>
+    `).join('');
+  }
+
+  function filterStudents() {
+    const q = document.getElementById('search').value.toLowerCase();
+    const filtered = students.filter(s => s.full_name.toLowerCase().includes(q));
+    renderTable(filtered);
+  }
+
+  function getStudentIndex(studentId) {
+    return students.findIndex(s => s.id === studentId);
+  }
+
+  function adjust(studentId, cat, delta) {
+    const idx = getStudentIndex(studentId);
+    if (idx === -1) return;
+
+    const newVal = Math.max(0, students[idx][cat] + delta);
+    students[idx][cat] = newVal;
+
+    // Update input in DOM
+    const input = document.querySelector(`input[data-student="${studentId}"][data-cat="${cat}"]`);
+    if (input) input.value = newVal;
+
+    scheduleSave(studentId);
+  }
+
+  function setDirect(studentId, cat, input) {
+    const idx = getStudentIndex(studentId);
+    if (idx === -1) return;
+
+    const newVal = Math.max(0, parseInt(input.value) || 0);
+    students[idx][cat] = newVal;
+    input.value = newVal;
+
+    scheduleSave(studentId);
+  }
+
+  // Debounce saves — wait 800ms after last change before saving
+  const pendingSaves = new Set();
+
+  function scheduleSave(studentId) {
+    pendingSaves.add(studentId);
+    showIndicator('saving');
+
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      saveAll();
+    }, 800);
+  }
+
+  async function saveAll() {
+    const ids = [...pendingSaves];
+    pendingSaves.clear();
+
+    for (const studentId of ids) {
+      const s = students.find(s => s.id === studentId);
+      if (!s) continue;
+
+      const payload = {
+        student_id:    s.id,
+        vocabulary_box: s.vocabulary_box,
+        answering:      s.answering,
+        presenting:     s.presenting,
+        task_on_time:   s.task_on_time,
+        helping_hand:   s.helping_hand,
+        quiz:           s.quiz,
+        updated_at:     new Date().toISOString(),
+      };
+
+      if (s.activeness_id) {
+        // Update existing row
+        const { data } = await db
+          .from('activeness')
+          .update(payload)
+          .eq('id', s.activeness_id)
+          .select('id')
+          .single();
+      } else {
+        // Insert new row
+        const { data } = await db
+          .from('activeness')
+          .insert(payload)
+          .select('id')
+          .single();
+
+        if (data) {
+          const idx = getStudentIndex(studentId);
+          if (idx !== -1) students[idx].activeness_id = data.id;
+        }
+      }
+    }
+
+    showIndicator('saved');
+    setTimeout(() => hideIndicator(), 2000);
+  }
+
+  function showIndicator(state) {
+    const el = document.getElementById('save-indicator');
+    const txt = document.getElementById('save-text');
+    el.className = 'save-indicator show ' + state;
+    txt.textContent = state === 'saving' ? 'Saving...' : 'Saved';
+  }
+
+  function hideIndicator() {
+    document.getElementById('save-indicator').className = 'save-indicator';
+  }
+
+  async function handleLogout() {
+    await db.auth.signOut();
+    window.location.href = '/index.html';
+  }
+
+  init();
+</script>
+</body>
+</html>
