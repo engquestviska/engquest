@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>English Quest — Teacher Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --purple: #7c3aed;
+      --purple-dark: #5b21b6;
+      --purple-light: #a78bfa;
+      --gold: #f59e0b;
+      --gold-light: #fcd34d;
+      --bg: #0d0a1a;
+      --surface: #16102a;
+      --surface2: #1e1638;
+      --border: rgba(124,58,237,0.2);
+      --text: #f1f0f5;
+      --text-muted: #8b7fb8;
+      --success: #10b981;
+      --danger: #ef4444;
+    }
+
+    [data-theme="light"] {
+      --bg: #f5f3ff;
+      --surface: #ffffff;
+      --surface2: #ede9fe;
+      --border: rgba(124,58,237,0.15);
+      --text: #1e1638;
+      --text-muted: #6d5a9c;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      height: 100vh;
+      z-index: 100;
+      transition: background 0.3s;
+    }
+
+    .sidebar-logo {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-logo h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--purple-light);
+      letter-spacing: -0.02em;
+    }
+
+    .sidebar-logo span {
+      color: var(--gold);
+    }
+
+    .sidebar-logo p {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 1rem 0;
+      overflow-y: auto;
+    }
+
+    .nav-section {
+      padding: 0.5rem 1rem 0.25rem;
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.65rem 1.25rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      border-left: 3px solid transparent;
+      transition: all 0.15s;
+      cursor: pointer;
+    }
+
+    .nav-item:hover {
+      color: var(--text);
+      background: var(--surface2);
+    }
+
+    .nav-item.active {
+      color: var(--purple-light);
+      border-left-color: var(--purple);
+      background: rgba(124,58,237,0.08);
+    }
+
+    .nav-item .icon {
+      width: 18px;
+      text-align: center;
+      font-size: 1rem;
+    }
+
+    .sidebar-footer {
+      padding: 1rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--purple), var(--gold));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 0.8rem;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .sidebar-footer-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .sidebar-footer-info p {
+      font-size: 0.8rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sidebar-footer-info span {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .logout-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 0.25rem;
+      transition: color 0.15s;
+    }
+
+    .logout-btn:hover { color: var(--danger); }
+
+    /* Main content */
+    .main {
+      margin-left: 240px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      transition: background 0.3s;
+    }
+
+    .topbar-left h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .topbar-left p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .theme-toggle {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 0.35rem 0.75rem;
+      cursor: pointer;
+      font-size: 0.85rem;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.2s;
+    }
+
+    .theme-toggle:hover {
+      border-color: var(--purple);
+    }
+
+    /* Content area */
+    .content {
+      padding: 2rem;
+      flex: 1;
+    }
+
+    /* Stats row */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.3s, transform 0.2s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--purple), var(--gold));
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .stat-sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.35rem;
+    }
+
+    /* Classes grid */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .classes-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .class-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      color: var(--text);
+      display: block;
+    }
+
+    .class-card:hover {
+      border-color: var(--purple);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(124,58,237,0.15);
+    }
+
+    .class-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .class-badge {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--purple-light);
+    }
+
+    .class-count {
+      font-size: 0.75rem;
+      background: rgba(124,58,237,0.15);
+      color: var(--purple-light);
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+
+    .class-stats {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .class-stat {
+      flex: 1;
+    }
+
+    .class-stat-label {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .class-stat-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-top: 0.1rem;
+    }
+
+    /* Bottom row */
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: background 0.3s;
+    }
+
+    .panel-header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .panel-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .panel-body {
+      padding: 1rem 1.25rem;
+    }
+
+    .activity-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .activity-item:last-child { border-bottom: none; }
+
+    .activity-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--purple);
+      flex-shrink: 0;
+    }
+
+    .activity-text {
+      flex: 1;
+      font-size: 0.82rem;
+    }
+
+    .activity-time {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    /* Loading */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: 'Syne', sans-serif;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border);
+      border-top-color: var(--purple);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin-right: 0.75rem;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Fade in */
+    .fade-in {
+      animation: fadeIn 0.4s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 1100px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .classes-grid { grid-template-columns: repeat(2, 1fr); }
+      .bottom-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="loading" id="loading-screen">
+    <div class="spinner"></div>
+    Checking session...
+  </div>
+
+  <div id="app" style="display:none; width:100%; display:none;">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <h1>English <span>Quest</span></h1>
+        <p>SMA Negeri 6 Surakarta</p>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section">Main</div>
+        <a class="nav-item active" href="/teacher/dashboard.html">
+          <span class="icon">⊞</span> Dashboard
+        </a>
+
+        <div class="nav-section">Classes</div>
+        <a class="nav-item" href="/teacher/activeness.html">
+          <span class="icon">⚡</span> Activeness
+        </a>
+        <a class="nav-item" href="/teacher/scores.html">
+          <span class="icon">📊</span> Scores
+        </a>
+        <a class="nav-item" href="/teacher/tasks.html">
+          <span class="icon">📋</span> Tasks
+        </a>
+        <a class="nav-item" href="/teacher/attendance.html">
+          <span class="icon">✅</span> Attendance
+        </a>
+        <a class="nav-item" href="/teacher/strikes.html">
+          <span class="icon">⚠️</span> Strikes
+        </a>
+
+        <div class="nav-section">Content</div>
+        <a class="nav-item" href="/teacher/submissions.html">
+          <span class="icon">📤</span> Submissions
+        </a>
+        <a class="nav-item" href="/teacher/materials.html">
+          <span class="icon">📚</span> Materials
+        </a>
+        <a class="nav-item" href="/teacher/gallery.html">
+          <span class="icon">🖼️</span> Gallery
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="avatar" id="avatar-initials">T</div>
+        <div class="sidebar-footer-info">
+          <p id="sidebar-email">Teacher</p>
+          <span>Teacher</span>
+        </div>
+        <button class="logout-btn" onclick="handleLogout()" title="Log out">⏻</button>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="main">
+      <div class="topbar">
+        <div class="topbar-left">
+          <h2>Dashboard</h2>
+          <p id="greeting">Good morning</p>
+        </div>
+        <div class="topbar-right">
+          <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">
+            🌙 Dark
+          </button>
+        </div>
+      </div>
+
+      <div class="content fade-in">
+
+        <!-- Stats -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total Students</div>
+            <div class="stat-value" id="stat-students">—</div>
+            <div class="stat-sub">across all classes</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Classes</div>
+            <div class="stat-value" id="stat-classes">—</div>
+            <div class="stat-sub">active this semester</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Submissions</div>
+            <div class="stat-value" id="stat-submissions">—</div>
+            <div class="stat-sub">total collected</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Strikes Given</div>
+            <div class="stat-value" id="stat-strikes">—</div>
+            <div class="stat-sub">this semester</div>
+          </div>
+        </div>
+
+        <!-- Classes -->
+        <div class="section-header">
+          <div class="section-title">Your Classes</div>
+        </div>
+
+        <div class="classes-grid" id="classes-grid">
+          <div class="empty-state">Loading classes...</div>
+        </div>
+
+        <!-- Bottom panels -->
+        <div class="bottom-grid">
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">Recent Submissions</div>
+            </div>
+            <div class="panel-body" id="recent-submissions">
+              <div class="empty-state">No submissions yet</div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">Recent Strikes</div>
+            </div>
+            <div class="panel-body" id="recent-strikes">
+              <div class="empty-state">No strikes recorded</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // --- Supabase init ---
+    const { createClient } = supabase;
+    const client = createClient(
+      'https://unbvljjgiqyphtykbkdb.supabase.co',
+      'sb_publishable_DFTQJ5niT0OiWVwpeNwM1A_W18mJ1oT'
+    );
+
+    // --- Theme ---
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isDark = html.getAttribute('data-theme') !== 'light';
+      html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      document.getElementById('theme-btn').textContent = isDark ? '☀️ Light' : '🌙 Dark';
+      localStorage.setItem('theme', isDark ? 'light' : 'dark');
+    }
+
+    function loadTheme() {
+      const saved = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', saved);
+      document.getElementById('theme-btn').textContent = saved === 'light' ? '☀️ Light' : '🌙 Dark';
+    }
+
+    // --- Greeting ---
+    function setGreeting() {
+      const hour = new Date().getHours();
+      const greet = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+      document.getElementById('greeting').textContent = greet;
+    }
+
+    // --- Auth check ---
+    async function init() {
+      loadTheme();
+      setGreeting();
+
+      const { data: { session } } = await client.auth.getSession();
+
+      if (!session) {
+        window.location.href = '/index.html';
+        return;
+      }
+
+      const role = session.user.user_metadata?.role;
+      if (role !== 'teacher') {
+        window.location.href = '/student/dashboard.html';
+        return;
+      }
+
+      // Show app
+      document.getElementById('loading-screen').style.display = 'none';
+      document.getElementById('app').style.display = 'flex';
+
+      // Set email in sidebar
+      const email = session.user.email;
+      document.getElementById('sidebar-email').textContent = email;
+      document.getElementById('avatar-initials').textContent = email[0].toUpperCase();
+
+      // Load data
+      await loadStats();
+      await loadClasses();
+      await loadRecentSubmissions();
+      await loadRecentStrikes();
+    }
+
+    // --- Load stats ---
+    async function loadStats() {
+      const [students, classes, submissions, strikes] = await Promise.all([
+        client.from('students').select('id', { count: 'exact', head: true }),
+        client.from('classes').select('id', { count: 'exact', head: true }),
+        client.from('submissions').select('id', { count: 'exact', head: true }),
+        client.from('strikes').select('id', { count: 'exact', head: true }),
+      ]);
+
+      document.getElementById('stat-students').textContent = students.count ?? 0;
+      document.getElementById('stat-classes').textContent = classes.count ?? 0;
+      document.getElementById('stat-submissions').textContent = submissions.count ?? 0;
+      document.getElementById('stat-strikes').textContent = strikes.count ?? 0;
+    }
+
+    // --- Load classes ---
+    async function loadClasses() {
+      const { data, error } = await client.from('classes').select('*').order('name');
+      const grid = document.getElementById('classes-grid');
+
+      if (error || !data || data.length === 0) {
+        grid.innerHTML = '<div class="empty-state">No classes yet. Add classes in Supabase to get started.</div>';
+        return;
+      }
+
+      grid.innerHTML = data.map(cls => `
+        <a class="class-card" href="/teacher/class.html?id=${cls.id}">
+          <div class="class-card-header">
+            <div class="class-badge">${cls.name}</div>
+            <div class="class-count">Grade ${cls.grade}</div>
+          </div>
+          <div class="class-stats">
+            <div class="class-stat">
+              <div class="class-stat-label">Students</div>
+              <div class="class-stat-value" id="cls-count-${cls.id}">—</div>
+            </div>
+            <div class="class-stat">
+              <div class="class-stat-label">Submissions</div>
+              <div class="class-stat-value" id="cls-sub-${cls.id}">—</div>
+            </div>
+          </div>
+        </a>
+      `).join('');
+
+      // Load per-class counts
+      data.forEach(async cls => {
+        const { count: studentCount } = await client
+          .from('students')
+          .select('id', { count: 'exact', head: true })
+          .eq('class_id', cls.id);
+
+        const { data: students } = await client
+          .from('students')
+          .select('id')
+          .eq('class_id', cls.id);
+
+        const studentIds = (students || []).map(s => s.id);
+        let subCount = 0;
+
+        if (studentIds.length > 0) {
+          const { count } = await client
+            .from('submissions')
+            .select('id', { count: 'exact', head: true })
+            .in('student_id', studentIds);
+          subCount = count ?? 0;
+        }
+
+        const countEl = document.getElementById(`cls-count-${cls.id}`);
+        const subEl = document.getElementById(`cls-sub-${cls.id}`);
+        if (countEl) countEl.textContent = studentCount ?? 0;
+        if (subEl) subEl.textContent = subCount;
+      });
+    }
+
+    // --- Recent submissions ---
+    async function loadRecentSubmissions() {
+      const { data } = await client
+        .from('submissions')
+        .select('*, students(full_name, classes(name))')
+        .order('submitted_at', { ascending: false })
+        .limit(5);
+
+      const el = document.getElementById('recent-submissions');
+      if (!data || data.length === 0) return;
+
+      el.innerHTML = data.map(s => `
+        <div class="activity-item">
+          <div class="activity-dot"></div>
+          <div class="activity-text">
+            <strong>${s.students?.full_name ?? 'Unknown'}</strong>
+            (${s.students?.classes?.name ?? '—'}) submitted ${s.chapter} T${s.task_number}
+          </div>
+          <div class="activity-time">${formatDate(s.submitted_at)}</div>
+        </div>
+      `).join('');
+    }
+
+    // --- Recent strikes ---
+    async function loadRecentStrikes() {
+      const { data } = await client
+        .from('strikes')
+        .select('*, students(full_name, classes(name))')
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      const el = document.getElementById('recent-strikes');
+      if (!data || data.length === 0) return;
+
+      el.innerHTML = data.map(s => `
+        <div class="activity-item">
+          <div class="activity-dot" style="background: var(--danger)"></div>
+          <div class="activity-text">
+            <strong>${s.students?.full_name ?? 'Unknown'}</strong>
+            (${s.students?.classes?.name ?? '—'}) — ${s.reason ?? 'No reason given'}
+          </div>
+          <div class="activity-time">${formatDate(s.created_at)}</div>
+        </div>
+      `).join('');
+    }
+
+    // --- Helpers ---
+    function formatDate(iso) {
+      if (!iso) return '—';
+      const d = new Date(iso);
+      return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    }
+
+    async function handleLogout() {
+      await client.auth.signOut();
+      window.location.href = '/index.html';
+    }
+
+    init();
+  </script>
+
+</body>
+</html>
