@@ -3,383 +3,257 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>English Quest — Teacher Dashboard</title>
+  <title>English Quest — Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --purple: #7c3aed;
-      --purple-dark: #5b21b6;
-      --purple-light: #a78bfa;
-      --gold: #f59e0b;
-      --gold-light: #fcd34d;
-      --bg: #0d0a1a;
-      --surface: #16102a;
-      --surface2: #1e1638;
-      --border: rgba(124,58,237,0.2);
-      --text: #f1f0f5;
-      --text-muted: #8b7fb8;
-      --success: #10b981;
-      --danger: #ef4444;
-    }
-
-    [data-theme="light"] {
-      --bg: #f5f3ff;
-      --surface: #ffffff;
-      --surface2: #ede9fe;
-      --border: rgba(124,58,237,0.15);
-      --text: #1e1638;
-      --text-muted: #6d5a9c;
+      --bg:        #0e0e11;
+      --surface:   #16161a;
+      --surface2:  #1e1e24;
+      --border:    #2a2a35;
+      --indigo:    #6366f1;
+      --indigo-dim:#3b3d6e;
+      --amber:     #f59e0b;
+      --text:      #e8e8f0;
+      --muted:     #6b6b80;
+      --danger:    #ef4444;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: 'DM Sans', sans-serif;
+      font-family: 'Inter', sans-serif;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
       display: flex;
-      transition: background 0.3s, color 0.3s;
     }
 
     /* Sidebar */
     .sidebar {
-      width: 240px;
+      width: 220px;
+      flex-shrink: 0;
+      height: 100vh;
+      position: sticky;
+      top: 0;
       background: var(--surface);
       border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
-      position: fixed;
-      height: 100vh;
-      z-index: 100;
-      transition: background 0.3s;
     }
 
-    .sidebar-logo {
-      padding: 1.5rem;
+    .sidebar-top {
+      padding: 1.5rem 1.25rem 1.25rem;
       border-bottom: 1px solid var(--border);
     }
 
-    .sidebar-logo h1 {
+    .wordmark {
       font-family: 'Syne', sans-serif;
-      font-size: 1.2rem;
       font-weight: 800;
-      color: var(--purple-light);
-      letter-spacing: -0.02em;
+      font-size: 1.05rem;
+      letter-spacing: -0.01em;
+      color: var(--text);
     }
 
-    .sidebar-logo span {
-      color: var(--gold);
-    }
+    .wordmark em { color: var(--amber); font-style: normal; }
 
-    .sidebar-logo p {
-      font-size: 0.7rem;
-      color: var(--text-muted);
+    .school-label {
+      font-size: 0.72rem;
+      color: var(--muted);
       margin-top: 0.2rem;
     }
 
-    .sidebar-nav {
+    .nav {
       flex: 1;
-      padding: 1rem 0;
+      padding: 1rem 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
       overflow-y: auto;
     }
 
-    .nav-section {
-      padding: 0.5rem 1rem 0.25rem;
-      font-size: 0.65rem;
+    .nav-group-label {
+      font-size: 0.62rem;
       font-weight: 600;
-      letter-spacing: 0.08em;
-      color: var(--text-muted);
+      letter-spacing: 0.1em;
       text-transform: uppercase;
+      color: var(--muted);
+      padding: 0.9rem 0.6rem 0.3rem;
     }
 
-    .nav-item {
+    .nav-link {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
-      padding: 0.65rem 1.25rem;
-      color: var(--text-muted);
-      text-decoration: none;
+      gap: 0.65rem;
+      padding: 0.55rem 0.75rem;
+      border-radius: 8px;
       font-size: 0.875rem;
-      font-weight: 500;
-      border-left: 3px solid transparent;
-      transition: all 0.15s;
+      font-weight: 400;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.15s, background 0.15s;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
       cursor: pointer;
     }
 
-    .nav-item:hover {
-      color: var(--text);
-      background: var(--surface2);
-    }
+    .nav-link svg { width: 15px; height: 15px; flex-shrink: 0; }
+    .nav-link:hover { color: var(--text); background: var(--surface2); }
+    .nav-link.active { color: var(--text); background: var(--surface2); font-weight: 500; }
 
-    .nav-item.active {
-      color: var(--purple-light);
-      border-left-color: var(--purple);
-      background: rgba(124,58,237,0.08);
-    }
-
-    .nav-item .icon {
-      width: 18px;
-      text-align: center;
-      font-size: 1rem;
-    }
-
-    .sidebar-footer {
-      padding: 1rem;
+    .sidebar-foot {
+      padding: 1rem 0.75rem;
       border-top: 1px solid var(--border);
+    }
+
+    .user-row {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: 0.65rem;
+      padding: 0.4rem 0.6rem;
+      border-radius: 8px;
     }
 
     .avatar {
-      width: 34px;
-      height: 34px;
+      width: 30px; height: 30px;
       border-radius: 50%;
-      background: linear-gradient(135deg, var(--purple), var(--gold));
+      background: var(--indigo-dim);
+      color: #a5b4fc;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.8rem;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: 'Syne', sans-serif;
-      font-weight: 800;
-      font-size: 0.8rem;
-      color: white;
       flex-shrink: 0;
     }
 
-    .sidebar-footer-info {
+    .user-meta { flex: 1; min-width: 0; }
+    .user-name { font-size: 0.8rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-role { font-size: 0.68rem; color: var(--muted); }
+
+    .btn-logout {
+      background: none; border: none; cursor: pointer;
+      color: var(--muted); padding: 0.25rem;
+      border-radius: 6px; transition: color 0.15s;
+      display: flex; align-items: center;
+    }
+    .btn-logout:hover { color: var(--danger); }
+    .btn-logout svg { width: 15px; height: 15px; }
+
+    /* Main */
+    .main {
       flex: 1;
+      padding: 2rem 2.5rem;
+      overflow-y: auto;
       min-width: 0;
     }
 
-    .sidebar-footer-info p {
-      font-size: 0.8rem;
-      font-weight: 600;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+    .page-header { margin-bottom: 2rem; }
 
-    .sidebar-footer-info span {
-      font-size: 0.7rem;
-      color: var(--text-muted);
-    }
+    .greeting { font-size: 0.82rem; color: var(--muted); margin-bottom: 0.25rem; }
 
-    .logout-btn {
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      cursor: pointer;
-      font-size: 1rem;
-      padding: 0.25rem;
-      transition: color 0.15s;
-    }
-
-    .logout-btn:hover { color: var(--danger); }
-
-    /* Main content */
-    .main {
-      margin-left: 240px;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 1rem 2rem;
-      border-bottom: 1px solid var(--border);
-      background: var(--surface);
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      transition: background 0.3s;
-    }
-
-    .topbar-left h2 {
+    .page-heading {
       font-family: 'Syne', sans-serif;
-      font-size: 1.1rem;
+      font-size: 1.6rem;
       font-weight: 700;
+      letter-spacing: -0.02em;
     }
 
-    .topbar-left p {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-    }
+    .page-heading span { color: var(--indigo); }
 
-    .topbar-right {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .theme-toggle {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 0.35rem 0.75rem;
-      cursor: pointer;
-      font-size: 0.85rem;
-      color: var(--text);
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      transition: all 0.2s;
-    }
-
-    .theme-toggle:hover {
-      border-color: var(--purple);
-    }
-
-    /* Content area */
-    .content {
-      padding: 2rem;
-      flex: 1;
-    }
-
-    /* Stats row */
-    .stats-grid {
+    /* Stats */
+    .stats-row {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 1rem;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
       margin-bottom: 2rem;
     }
 
-    .stat-card {
+    .stat {
       background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.25rem;
-      position: relative;
-      overflow: hidden;
-      transition: background 0.3s, transform 0.2s;
+      padding: 1.25rem 1.5rem;
+      transition: background 0.15s;
     }
 
-    .stat-card:hover {
-      transform: translateY(-2px);
-    }
-
-    .stat-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, var(--purple), var(--gold));
-    }
+    .stat:hover { background: var(--surface2); }
 
     .stat-label {
-      font-size: 0.75rem;
-      color: var(--text-muted);
+      font-size: 0.72rem;
       font-weight: 500;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.08em;
+      color: var(--muted);
       margin-bottom: 0.5rem;
     }
 
     .stat-value {
       font-family: 'Syne', sans-serif;
       font-size: 2rem;
-      font-weight: 800;
-      color: var(--text);
-      line-height: 1;
-    }
-
-    .stat-sub {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      margin-top: 0.35rem;
-    }
-
-    /* Classes grid */
-    .section-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 1rem;
-    }
-
-    .section-title {
-      font-family: 'Syne', sans-serif;
-      font-size: 1rem;
       font-weight: 700;
+      line-height: 1;
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-sub { font-size: 0.72rem; color: var(--muted); }
+
+    /* Classes */
+    .section-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 0.85rem;
     }
 
     .classes-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 1rem;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
       margin-bottom: 2rem;
     }
 
     .class-card {
       background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.25rem;
+      padding: 1rem 1.25rem;
       cursor: pointer;
-      transition: all 0.2s;
-      text-decoration: none;
-      color: var(--text);
-      display: block;
-    }
-
-    .class-card:hover {
-      border-color: var(--purple);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(124,58,237,0.15);
-    }
-
-    .class-card-header {
+      transition: background 0.15s;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 1rem;
     }
 
-    .class-badge {
+    .class-card:hover { background: var(--surface2); }
+
+    .class-name {
       font-family: 'Syne', sans-serif;
-      font-size: 1.1rem;
-      font-weight: 800;
-      color: var(--purple-light);
-    }
-
-    .class-count {
-      font-size: 0.75rem;
-      background: rgba(124,58,237,0.15);
-      color: var(--purple-light);
-      padding: 0.2rem 0.6rem;
-      border-radius: 20px;
-      font-weight: 600;
-    }
-
-    .class-stats {
-      display: flex;
-      gap: 1rem;
-    }
-
-    .class-stat {
-      flex: 1;
-    }
-
-    .class-stat-label {
-      font-size: 0.65rem;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .class-stat-value {
-      font-family: 'Syne', sans-serif;
-      font-size: 1.1rem;
       font-weight: 700;
-      margin-top: 0.1rem;
+      font-size: 1rem;
     }
 
-    /* Bottom row */
+    .class-count { font-size: 0.78rem; color: var(--muted); margin-top: 0.15rem; }
+
+    .class-arrow {
+      color: var(--border);
+      font-size: 1.1rem;
+      transition: color 0.15s, transform 0.15s;
+    }
+
+    .class-card:hover .class-arrow { color: var(--indigo); transform: translateX(3px); }
+
+    /* Bottom */
     .bottom-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -391,436 +265,274 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       overflow: hidden;
-      transition: background 0.3s;
     }
 
     .panel-header {
-      padding: 1rem 1.25rem;
+      padding: 0.85rem 1.25rem;
       border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      font-size: 0.8rem;
+      font-weight: 600;
     }
 
-    .panel-title {
-      font-family: 'Syne', sans-serif;
-      font-size: 0.9rem;
-      font-weight: 700;
-    }
+    .panel-body { padding: 0.25rem 0; }
 
-    .panel-body {
-      padding: 1rem 1.25rem;
-    }
-
-    .activity-item {
+    .action-row {
       display: flex;
       align-items: center;
       gap: 0.75rem;
-      padding: 0.6rem 0;
-      border-bottom: 1px solid var(--border);
+      padding: 0.65rem 1.25rem;
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 0.85rem;
+      transition: background 0.15s, color 0.15s;
+      cursor: pointer;
     }
 
-    .activity-item:last-child { border-bottom: none; }
+    .action-row:hover { background: var(--surface2); color: var(--text); }
+    .action-row svg { width: 14px; height: 14px; flex-shrink: 0; }
 
-    .activity-dot {
-      width: 8px;
-      height: 8px;
+    .action-dot {
+      width: 5px; height: 5px;
       border-radius: 50%;
-      background: var(--purple);
+      background: var(--indigo);
       flex-shrink: 0;
     }
 
-    .activity-text {
-      flex: 1;
-      font-size: 0.82rem;
-    }
-
-    .activity-time {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-    }
-
     .empty-state {
-      text-align: center;
-      padding: 2rem;
-      color: var(--text-muted);
-      font-size: 0.85rem;
+      padding: 1.25rem;
+      font-size: 0.82rem;
+      color: var(--muted);
     }
 
-    /* Loading */
-    .loading {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      font-family: 'Syne', sans-serif;
-      color: var(--text-muted);
-      font-size: 0.9rem;
-    }
-
-    .spinner {
-      width: 20px;
-      height: 20px;
-      border: 2px solid var(--border);
-      border-top-color: var(--purple);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      margin-right: 0.75rem;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* Fade in */
-    .fade-in {
-      animation: fadeIn 0.4s ease forwards;
-    }
-
-    @keyframes fadeIn {
+    .main { animation: fadeUp 0.3s ease both; }
+    @keyframes fadeUp {
       from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
-    @media (max-width: 1100px) {
-      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    @media (max-width: 1024px) {
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
       .classes-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 700px) {
+      .sidebar { display: none; }
+      .main { padding: 1.25rem; }
       .bottom-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
-  <div class="loading" id="loading-screen">
-    <div class="spinner"></div>
-    Checking session...
+<aside class="sidebar">
+  <div class="sidebar-top">
+    <div class="wordmark">English <em>Quest</em></div>
+    <div class="school-label">SMA Negeri 6 Surakarta</div>
   </div>
 
-  <div id="app" style="display:none; width:100%; display:none;">
+  <nav class="nav">
+    <span class="nav-group-label">Main</span>
+    <a class="nav-link active" href="/teacher/dashboard.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </a>
+    <a class="nav-link" href="/teacher/activeness.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      Activeness
+    </a>
+    <a class="nav-link" href="/teacher/scores.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Scores
+    </a>
 
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="sidebar-logo">
-        <h1>English <span>Quest</span></h1>
-        <p>SMA Negeri 6 Surakarta</p>
+    <span class="nav-group-label">Management</span>
+    <a class="nav-link" href="/teacher/submissions.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+      Submissions
+    </a>
+    <a class="nav-link" href="/teacher/attendance.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      Attendance
+    </a>
+    <a class="nav-link" href="/teacher/strikes.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Strikes
+    </a>
+    <a class="nav-link" href="/teacher/materials.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      Materials
+    </a>
+    <a class="nav-link" href="/teacher/gallery.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      Gallery
+    </a>
+  </nav>
+
+  <div class="sidebar-foot">
+    <div class="user-row">
+      <div class="avatar" id="avatar-initials">—</div>
+      <div class="user-meta">
+        <div class="user-name" id="user-name">Loading</div>
+        <div class="user-role">Teacher</div>
       </div>
+      <button class="btn-logout" onclick="handleLogout()" title="Log out">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </div>
+</aside>
 
-      <nav class="sidebar-nav">
-        <div class="nav-section">Main</div>
-        <a class="nav-item active" href="/teacher/dashboard.html">
-          <span class="icon">⊞</span> Dashboard
+<main class="main">
+  <div class="page-header">
+    <div class="greeting" id="greeting">—</div>
+    <div class="page-heading">Dashboard <span>Overview</span></div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat">
+      <div class="stat-label">Students</div>
+      <div class="stat-value" id="stat-students">—</div>
+      <div class="stat-sub">Across all classes</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Classes</div>
+      <div class="stat-value">9</div>
+      <div class="stat-sub">XE1, XE4 – XE11</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Submissions</div>
+      <div class="stat-value" id="stat-submissions">—</div>
+      <div class="stat-sub">Total received</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Activeness</div>
+      <div class="stat-value" id="stat-activeness">—</div>
+      <div class="stat-sub">Students tracked</div>
+    </div>
+  </div>
+
+  <div class="section-label">Your Classes</div>
+  <div class="classes-grid" id="classes-grid"></div>
+
+  <div class="bottom-grid">
+    <div class="panel">
+      <div class="panel-header">Quick Actions</div>
+      <div class="panel-body">
+        <a class="action-row" href="/teacher/activeness.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Update Activeness
         </a>
-
-        <div class="nav-section">Classes</div>
-        <a class="nav-item" href="/teacher/activeness.html">
-          <span class="icon">⚡</span> Activeness
+        <a class="action-row" href="/teacher/scores.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Input Scores
         </a>
-        <a class="nav-item" href="/teacher/scores.html">
-          <span class="icon">📊</span> Scores
+        <a class="action-row" href="/teacher/submissions.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          View Submissions
         </a>
-        <a class="nav-item" href="/teacher/tasks.html">
-          <span class="icon">📋</span> Tasks
+        <a class="action-row" href="/teacher/attendance.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Mark Attendance
         </a>
-        <a class="nav-item" href="/teacher/attendance.html">
-          <span class="icon">✅</span> Attendance
+        <a class="action-row" href="/teacher/strikes.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Give Strike
         </a>
-        <a class="nav-item" href="/teacher/strikes.html">
-          <span class="icon">⚠️</span> Strikes
-        </a>
-
-        <div class="nav-section">Content</div>
-        <a class="nav-item" href="/teacher/submissions.html">
-          <span class="icon">📤</span> Submissions
-        </a>
-        <a class="nav-item" href="/teacher/materials.html">
-          <span class="icon">📚</span> Materials
-        </a>
-        <a class="nav-item" href="/teacher/gallery.html">
-          <span class="icon">🖼️</span> Gallery
-        </a>
-      </nav>
-
-      <div class="sidebar-footer">
-        <div class="avatar" id="avatar-initials">T</div>
-        <div class="sidebar-footer-info">
-          <p id="sidebar-email">Teacher</p>
-          <span>Teacher</span>
-        </div>
-        <button class="logout-btn" onclick="handleLogout()" title="Log out">⏻</button>
-      </div>
-    </aside>
-
-    <!-- Main -->
-    <div class="main">
-      <div class="topbar">
-        <div class="topbar-left">
-          <h2>Dashboard</h2>
-          <p id="greeting">Good morning</p>
-        </div>
-        <div class="topbar-right">
-          <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">
-            🌙 Dark
-          </button>
-        </div>
-      </div>
-
-      <div class="content fade-in">
-
-        <!-- Stats -->
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-label">Total Students</div>
-            <div class="stat-value" id="stat-students">—</div>
-            <div class="stat-sub">across all classes</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Total Classes</div>
-            <div class="stat-value" id="stat-classes">—</div>
-            <div class="stat-sub">active this semester</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Submissions</div>
-            <div class="stat-value" id="stat-submissions">—</div>
-            <div class="stat-sub">total collected</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Strikes Given</div>
-            <div class="stat-value" id="stat-strikes">—</div>
-            <div class="stat-sub">this semester</div>
-          </div>
-        </div>
-
-        <!-- Classes -->
-        <div class="section-header">
-          <div class="section-title">Your Classes</div>
-        </div>
-
-        <div class="classes-grid" id="classes-grid">
-          <div class="empty-state">Loading classes...</div>
-        </div>
-
-        <!-- Bottom panels -->
-        <div class="bottom-grid">
-          <div class="panel">
-            <div class="panel-header">
-              <div class="panel-title">Recent Submissions</div>
-            </div>
-            <div class="panel-body" id="recent-submissions">
-              <div class="empty-state">No submissions yet</div>
-            </div>
-          </div>
-
-          <div class="panel">
-            <div class="panel-header">
-              <div class="panel-title">Recent Strikes</div>
-            </div>
-            <div class="panel-body" id="recent-strikes">
-              <div class="empty-state">No strikes recorded</div>
-            </div>
-          </div>
-        </div>
-
       </div>
     </div>
 
+    <div class="panel">
+      <div class="panel-header">Recent Submissions</div>
+      <div class="panel-body" id="recent-submissions">
+        <div class="empty-state">No submissions yet.</div>
+      </div>
+    </div>
   </div>
+</main>
 
-  <script>
-    // --- Supabase init ---
-    const { createClient } = supabase;
-    const client = createClient(
-      'https://unbvljjgiqyphtykbkdb.supabase.co',
-      'sb_publishable_DFTQJ5niT0OiWVwpeNwM1A_W18mJ1oT'
-    );
+<script>
+  const SUPABASE_URL = 'https://unbvljjgiqyphtykbkdb.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_DFTQJ5niT0OiWVwpeNwM1A_W18mJ1oT';
+  const { createClient } = supabase;
+  const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // --- Theme ---
-    function toggleTheme() {
-      const html = document.documentElement;
-      const isDark = html.getAttribute('data-theme') !== 'light';
-      html.setAttribute('data-theme', isDark ? 'light' : 'dark');
-      document.getElementById('theme-btn').textContent = isDark ? '☀️ Light' : '🌙 Dark';
-      localStorage.setItem('theme', isDark ? 'light' : 'dark');
-    }
+  const CLASSES = ['XE1','XE4','XE5','XE6','XE7','XE8','XE9','XE10','XE11'];
 
-    function loadTheme() {
-      const saved = localStorage.getItem('theme') || 'dark';
-      document.documentElement.setAttribute('data-theme', saved);
-      document.getElementById('theme-btn').textContent = saved === 'light' ? '☀️ Light' : '🌙 Dark';
-    }
+  const hr = new Date().getHours();
+  document.getElementById('greeting').textContent =
+    hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
 
-    // --- Greeting ---
-    function setGreeting() {
-      const hour = new Date().getHours();
-      const greet = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
-      document.getElementById('greeting').textContent = greet;
-    }
+  async function init() {
+    const { data: { user } } = await db.auth.getUser();
+    if (!user) { window.location.href = '/index.html'; return; }
+    if (user.user_metadata?.role !== 'teacher') { window.location.href = '/student/dashboard.html'; return; }
 
-    // --- Auth check ---
-    async function init() {
-      loadTheme();
-      setGreeting();
+    const name = user.email.split('@')[0];
+    document.getElementById('user-name').textContent = name;
+    document.getElementById('avatar-initials').textContent = name[0].toUpperCase();
 
-      const { data: { session } } = await client.auth.getSession();
+    renderClasses();
+    loadStats();
+    loadRecentSubmissions();
+  }
 
-      if (!session) {
-        window.location.href = '/index.html';
-        return;
-      }
-
-      const role = session.user.user_metadata?.role;
-      if (role !== 'teacher') {
-        window.location.href = '/student/dashboard.html';
-        return;
-      }
-
-      // Show app
-      document.getElementById('loading-screen').style.display = 'none';
-      document.getElementById('app').style.display = 'flex';
-
-      // Set email in sidebar
-      const email = session.user.email;
-      document.getElementById('sidebar-email').textContent = email;
-      document.getElementById('avatar-initials').textContent = email[0].toUpperCase();
-
-      // Load data
-      await loadStats();
-      await loadClasses();
-      await loadRecentSubmissions();
-      await loadRecentStrikes();
-    }
-
-    // --- Load stats ---
-    async function loadStats() {
-      const [students, classes, submissions, strikes] = await Promise.all([
-        client.from('students').select('id', { count: 'exact', head: true }),
-        client.from('classes').select('id', { count: 'exact', head: true }),
-        client.from('submissions').select('id', { count: 'exact', head: true }),
-        client.from('strikes').select('id', { count: 'exact', head: true }),
-      ]);
-
-      document.getElementById('stat-students').textContent = students.count ?? 0;
-      document.getElementById('stat-classes').textContent = classes.count ?? 0;
-      document.getElementById('stat-submissions').textContent = submissions.count ?? 0;
-      document.getElementById('stat-strikes').textContent = strikes.count ?? 0;
-    }
-
-    // --- Load classes ---
-    async function loadClasses() {
-      const { data, error } = await client.from('classes').select('*').order('name');
-      const grid = document.getElementById('classes-grid');
-
-      if (error || !data || data.length === 0) {
-        grid.innerHTML = '<div class="empty-state">No classes yet. Add classes in Supabase to get started.</div>';
-        return;
-      }
-
-      grid.innerHTML = data.map(cls => `
-        <a class="class-card" href="/teacher/class.html?id=${cls.id}">
-          <div class="class-card-header">
-            <div class="class-badge">${cls.name}</div>
-            <div class="class-count">Grade ${cls.grade}</div>
-          </div>
-          <div class="class-stats">
-            <div class="class-stat">
-              <div class="class-stat-label">Students</div>
-              <div class="class-stat-value" id="cls-count-${cls.id}">—</div>
-            </div>
-            <div class="class-stat">
-              <div class="class-stat-label">Submissions</div>
-              <div class="class-stat-value" id="cls-sub-${cls.id}">—</div>
-            </div>
-          </div>
-        </a>
-      `).join('');
-
-      // Load per-class counts
-      data.forEach(async cls => {
-        const { count: studentCount } = await client
-          .from('students')
-          .select('id', { count: 'exact', head: true })
-          .eq('class_id', cls.id);
-
-        const { data: students } = await client
-          .from('students')
-          .select('id')
-          .eq('class_id', cls.id);
-
-        const studentIds = (students || []).map(s => s.id);
-        let subCount = 0;
-
-        if (studentIds.length > 0) {
-          const { count } = await client
-            .from('submissions')
-            .select('id', { count: 'exact', head: true })
-            .in('student_id', studentIds);
-          subCount = count ?? 0;
-        }
-
-        const countEl = document.getElementById(`cls-count-${cls.id}`);
-        const subEl = document.getElementById(`cls-sub-${cls.id}`);
-        if (countEl) countEl.textContent = studentCount ?? 0;
-        if (subEl) subEl.textContent = subCount;
-      });
-    }
-
-    // --- Recent submissions ---
-    async function loadRecentSubmissions() {
-      const { data } = await client
-        .from('submissions')
-        .select('*, students(full_name, classes(name))')
-        .order('submitted_at', { ascending: false })
-        .limit(5);
-
-      const el = document.getElementById('recent-submissions');
-      if (!data || data.length === 0) return;
-
-      el.innerHTML = data.map(s => `
-        <div class="activity-item">
-          <div class="activity-dot"></div>
-          <div class="activity-text">
-            <strong>${s.students?.full_name ?? 'Unknown'}</strong>
-            (${s.students?.classes?.name ?? '—'}) submitted ${s.chapter} T${s.task_number}
-          </div>
-          <div class="activity-time">${formatDate(s.submitted_at)}</div>
+  function renderClasses() {
+    document.getElementById('classes-grid').innerHTML = CLASSES.map(name => `
+      <div class="class-card" onclick="goToClass('${name}')">
+        <div>
+          <div class="class-name">${name}</div>
+          <div class="class-count" id="count-${name}">— students</div>
         </div>
-      `).join('');
+        <div class="class-arrow">›</div>
+      </div>
+    `).join('');
+  }
+
+  async function loadStats() {
+    const [s, sub, act] = await Promise.all([
+      db.from('students').select('id', { count: 'exact', head: true }),
+      db.from('submissions').select('id', { count: 'exact', head: true }),
+      db.from('activeness').select('id', { count: 'exact', head: true }),
+    ]);
+    document.getElementById('stat-students').textContent = s.count ?? '—';
+    document.getElementById('stat-submissions').textContent = sub.count ?? '—';
+    document.getElementById('stat-activeness').textContent = act.count ?? '—';
+  }
+
+  async function loadRecentSubmissions() {
+    const { data } = await db
+      .from('submissions')
+      .select('id, chapter, task_number, submitted_at')
+      .order('submitted_at', { ascending: false })
+      .limit(5);
+
+    const container = document.getElementById('recent-submissions');
+    if (!data || data.length === 0) {
+      container.innerHTML = '<div class="empty-state">No submissions yet.</div>';
+      return;
     }
 
-    // --- Recent strikes ---
-    async function loadRecentStrikes() {
-      const { data } = await client
-        .from('strikes')
-        .select('*, students(full_name, classes(name))')
-        .order('created_at', { ascending: false })
-        .limit(5);
+    container.innerHTML = data.map(s => `
+      <div class="action-row">
+        <div class="action-dot"></div>
+        <span>${s.chapter} · Task ${s.task_number}</span>
+        <span style="margin-left:auto; font-size:0.72rem; color:var(--muted);">
+          ${new Date(s.submitted_at).toLocaleDateString('en-ID')}
+        </span>
+      </div>
+    `).join('');
+  }
 
-      const el = document.getElementById('recent-strikes');
-      if (!data || data.length === 0) return;
+  function goToClass(name) {
+    window.location.href = `/teacher/class.html?class=${name}`;
+  }
 
-      el.innerHTML = data.map(s => `
-        <div class="activity-item">
-          <div class="activity-dot" style="background: var(--danger)"></div>
-          <div class="activity-text">
-            <strong>${s.students?.full_name ?? 'Unknown'}</strong>
-            (${s.students?.classes?.name ?? '—'}) — ${s.reason ?? 'No reason given'}
-          </div>
-          <div class="activity-time">${formatDate(s.created_at)}</div>
-        </div>
-      `).join('');
-    }
+  async function handleLogout() {
+    await db.auth.signOut();
+    window.location.href = '/index.html';
+  }
 
-    // --- Helpers ---
-    function formatDate(iso) {
-      if (!iso) return '—';
-      const d = new Date(iso);
-      return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-    }
-
-    async function handleLogout() {
-      await client.auth.signOut();
-      window.location.href = '/index.html';
-    }
-
-    init();
-  </script>
-
+  init();
+</script>
 </body>
 </html>
