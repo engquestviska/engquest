@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>English Quest — Login</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .card {
+      background: #1e293b;
+      padding: 2.5rem;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 0.3rem;
+      color: #38bdf8;
+    }
+
+    p.subtitle {
+      font-size: 0.9rem;
+      color: #94a3b8;
+      margin-bottom: 2rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: #94a3b8;
+      margin-bottom: 0.4rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: #0f172a;
+      color: #e2e8f0;
+      font-size: 1rem;
+      margin-bottom: 1.2rem;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    input:focus {
+      border-color: #38bdf8;
+    }
+
+    button {
+      width: 100%;
+      padding: 0.85rem;
+      background: #38bdf8;
+      color: #0f172a;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #7dd3fc;
+    }
+
+    .error {
+      color: #f87171;
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-size: 0.8rem;
+      color: #475569;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>English Quest</h1>
+    <p class="subtitle">SMA Negeri 6 Surakarta — Please log in to continue</p>
+
+    <label for="email">Email</label>
+    <input type="email" id="email" placeholder="you@example.com" />
+
+    <label for="password">Password</label>
+    <input type="password" id="password" placeholder="••••••••" />
+
+    <p class="error" id="error-msg">Invalid email or password.</p>
+
+    <button onclick="handleLogin()">Log In</button>
+
+    <div class="footer">English Quest © 2025</div>
+  </div>
+
+  <script>
+    // Initialize Supabase
+    const { createClient } = supabase;
+    const client = createClient(
+      'https://unbvljjgiqyphtykbkdb.supabase.co',
+      'sb_publishable_DFTQJ5niT0OiWVwpeNwM1A_W18mJ1oT'
+    );
+
+    async function handleLogin() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const errorMsg = document.getElementById('error-msg');
+
+      errorMsg.style.display = 'none';
+
+      const { data, error } = await client.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
+        errorMsg.style.display = 'block';
+        errorMsg.textContent = error.message;
+        return;
+      }
+
+      // Get user role from metadata
+      const role = data.user.user_metadata?.role;
+
+      if (role === 'teacher') {
+        window.location.href = '/teacher/dashboard.html';
+      } else {
+        window.location.href = '/student/dashboard.html';
+      }
+    }
+  </script>
+
+</body>
+</html>
