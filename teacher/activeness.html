@@ -13,12 +13,17 @@
       --surface2:#1a1a20;
       --border:  #222228;
       --accent:  #7c6ffa;
-      --amber:   #e8a030;
       --text:    #dddde8;
       --muted:   #5a5a70;
       --subtle:  #2e2e3a;
       --success: #34d399;
       --danger:  #f87171;
+      --amber:   #e8a030;
+
+      /* Fixed column widths */
+      --col-no:     40px;
+      --col-name:   220px;
+      --col-cat:    120px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -32,7 +37,7 @@
       font-size: 14px;
     }
 
-    /* Sidebar — same as dashboard */
+    /* ── Sidebar ── */
     .sidebar {
       width: 210px;
       flex-shrink: 0;
@@ -143,7 +148,7 @@
     .btn-logout:hover { color: var(--danger); }
     .btn-logout svg { width: 14px; height: 14px; }
 
-    /* Main */
+    /* ── Main ── */
     .main {
       flex: 1;
       display: flex;
@@ -152,9 +157,8 @@
       overflow: hidden;
     }
 
-    /* Top bar */
     .topbar {
-      padding: 1.75rem 2.5rem 1.25rem;
+      padding: 1.5rem 2rem;
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
@@ -169,44 +173,42 @@
       letter-spacing: -0.01em;
     }
 
-    /* Class selector */
     .class-tabs {
       display: flex;
       gap: 4px;
-      flex-wrap: wrap;
     }
 
     .class-tab {
-      padding: 0.35rem 0.85rem;
+      padding: 0.3rem 0.75rem;
       border-radius: 6px;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 500;
       color: var(--muted);
       background: none;
       border: 1px solid var(--border);
       cursor: pointer;
       transition: all 0.12s;
+      font-family: 'DM Sans', sans-serif;
     }
 
     .class-tab:hover { color: var(--text); border-color: var(--subtle); }
     .class-tab.active { color: var(--text); background: var(--surface2); border-color: var(--accent); }
 
-    /* Search */
-    .search-bar {
-      padding: 0.85rem 2.5rem;
+    /* Search row */
+    .toolbar {
+      padding: 0.75rem 2rem;
       border-bottom: 1px solid var(--border);
       flex-shrink: 0;
     }
 
     .search-input {
-      width: 100%;
-      max-width: 320px;
-      padding: 0.5rem 0.85rem;
+      width: 280px;
+      padding: 0.45rem 0.85rem;
       background: var(--surface2);
       border: 1px solid var(--border);
       border-radius: 6px;
       color: var(--text);
-      font-size: 0.85rem;
+      font-size: 0.84rem;
       font-family: 'DM Sans', sans-serif;
       outline: none;
       transition: border-color 0.12s;
@@ -215,143 +217,162 @@
     .search-input::placeholder { color: var(--muted); }
     .search-input:focus { border-color: var(--accent); }
 
-    /* Category headers */
-    .categories {
-      display: flex;
-      gap: 0;
-      padding: 0 2.5rem;
-      border-bottom: 1px solid var(--border);
-      background: var(--surface);
-      flex-shrink: 0;
-      overflow-x: auto;
+    /* ── Table ── */
+    .table-wrap {
+      flex: 1;
+      overflow: auto;
     }
 
-    .cat-header {
-      font-size: 0.68rem;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 900px;
+    }
+
+    thead {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--surface);
+    }
+
+    thead th {
+      font-size: 0.67rem;
       font-weight: 500;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.1em;
       color: var(--muted);
-      padding: 0.7rem 0;
-      min-width: 110px;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    thead th:first-child  { width: var(--col-no);   padding-left: 2rem; text-align: left; }
+    thead th:nth-child(2) { width: var(--col-name);  text-align: left; }
+    thead th:not(:first-child):not(:nth-child(2)) {
+      width: var(--col-cat);
       text-align: center;
     }
 
-    .cat-header:first-child { min-width: 220px; text-align: left; }
-
-    /* Table area */
-    .table-area {
-      flex: 1;
-      overflow-y: auto;
-      padding: 0 2.5rem 2rem;
-    }
-
-    .student-row {
-      display: flex;
-      align-items: center;
-      gap: 0;
+    tbody tr {
       border-bottom: 1px solid var(--border);
       transition: background 0.1s;
     }
 
-    .student-row:hover { background: var(--surface); }
+    tbody tr:hover { background: var(--surface); }
 
-    .student-name {
-      min-width: 220px;
-      padding: 0.75rem 0;
-      font-size: 0.85rem;
+    tbody td {
+      padding: 0.55rem 0;
+      vertical-align: middle;
+    }
+
+    td.col-no {
+      padding-left: 2rem;
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-weight: 300;
+      width: var(--col-no);
+    }
+
+    td.col-name {
+      width: var(--col-name);
+      font-size: 0.84rem;
       font-weight: 400;
       color: var(--text);
+      padding-right: 1rem;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      padding-right: 1rem;
+      max-width: var(--col-name);
     }
 
-    .student-name .rank {
-      font-size: 0.7rem;
-      color: var(--muted);
-      margin-right: 0.4rem;
+    td.col-cat {
+      width: var(--col-cat);
+      text-align: center;
     }
 
-    /* Counter control */
+    /* Counter */
     .counter {
-      min-width: 110px;
-      display: flex;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 4px;
-      padding: 0.5rem 0;
+      gap: 3px;
     }
 
-    .counter-btn {
-      width: 22px; height: 22px;
+    .cbtn {
+      width: 20px;
+      height: 20px;
       border-radius: 4px;
       border: 1px solid var(--border);
       background: none;
       color: var(--muted);
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: all 0.1s;
       line-height: 1;
+      font-family: 'DM Sans', sans-serif;
     }
 
-    .counter-btn:hover { background: var(--surface2); color: var(--text); border-color: var(--subtle); }
-    .counter-btn.plus:hover { color: var(--success); border-color: var(--success); }
-    .counter-btn.minus:hover { color: var(--danger); border-color: var(--danger); }
+    .cbtn:hover { background: var(--surface2); color: var(--text); }
+    .cbtn.plus:hover  { color: var(--success); border-color: var(--success); }
+    .cbtn.minus:hover { color: var(--danger);  border-color: var(--danger); }
 
-    .counter-input {
-      width: 36px;
+    .cval {
+      width: 32px;
       text-align: center;
       background: none;
       border: 1px solid transparent;
       border-radius: 4px;
       color: var(--text);
-      font-size: 0.85rem;
+      font-size: 0.84rem;
       font-family: 'DM Sans', sans-serif;
       font-weight: 500;
-      padding: 0.2rem;
+      padding: 0.15rem 0;
       outline: none;
-      transition: border-color 0.12s;
+      transition: border-color 0.12s, background 0.12s;
+      -moz-appearance: textfield;
     }
 
-    .counter-input:focus {
+    .cval::-webkit-inner-spin-button,
+    .cval::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    .cval:focus {
       border-color: var(--accent);
       background: var(--surface2);
     }
 
-    /* Save indicator */
-    .save-indicator {
+    /* States */
+    .state-msg {
+      padding: 3rem 2rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      font-weight: 300;
+    }
+
+    /* Save toast */
+    .toast {
       position: fixed;
       bottom: 1.5rem;
-      right: 2rem;
+      right: 1.5rem;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 0.6rem 1rem;
-      font-size: 0.8rem;
+      padding: 0.55rem 1rem;
+      font-size: 0.78rem;
       color: var(--muted);
       display: none;
       align-items: center;
       gap: 0.5rem;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      z-index: 100;
     }
 
-    .save-indicator.show { display: flex; }
-    .save-indicator.saved { color: var(--success); border-color: var(--success); }
-    .save-indicator.saving { color: var(--amber); border-color: var(--amber); }
-
-    /* Empty/loading */
-    .state-msg {
-      padding: 3rem 0;
-      text-align: center;
-      color: var(--muted);
-      font-size: 0.85rem;
-      font-weight: 300;
-    }
+    .toast.show   { display: flex; }
+    .toast.saving { color: var(--amber);   border-color: rgba(232,160,48,0.3); }
+    .toast.saved  { color: var(--success); border-color: rgba(52,211,153,0.3); }
 
     .main { animation: fadeUp 0.25s ease both; }
     @keyframes fadeUp {
@@ -420,40 +441,38 @@
 
 <!-- Main -->
 <div class="main">
-
-  <!-- Top bar -->
   <div class="topbar">
     <div class="page-heading">Activeness</div>
     <div class="class-tabs" id="class-tabs"></div>
   </div>
 
-  <!-- Search -->
-  <div class="search-bar">
+  <div class="toolbar">
     <input class="search-input" type="text" id="search" placeholder="Search student..." oninput="filterStudents()">
   </div>
 
-  <!-- Category headers -->
-  <div class="categories">
-    <div class="cat-header">Student</div>
-    <div class="cat-header">Vocab Box</div>
-    <div class="cat-header">Answering</div>
-    <div class="cat-header">Presenting</div>
-    <div class="cat-header">Task On Time</div>
-    <div class="cat-header">Helping Hand</div>
-    <div class="cat-header">Quiz</div>
+  <div class="table-wrap">
+    <table id="main-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Student</th>
+          <th>Vocab Box</th>
+          <th>Answering</th>
+          <th>Presenting</th>
+          <th>Task On Time</th>
+          <th>Helping Hand</th>
+          <th>Quiz</th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        <tr><td colspan="8"><div class="state-msg">Select a class to begin.</div></td></tr>
+      </tbody>
+    </table>
   </div>
-
-  <!-- Student rows -->
-  <div class="table-area" id="table-area">
-    <div class="state-msg">Select a class to begin.</div>
-  </div>
-
 </div>
 
-<!-- Save indicator -->
-<div class="save-indicator" id="save-indicator">
-  <span id="save-text">Saving...</span>
-</div>
+<!-- Toast -->
+<div class="toast" id="toast"><span id="toast-text">Saving...</span></div>
 
 <script>
   const SUPABASE_URL = 'https://unbvljjgiqyphtykbkdb.supabase.co';
@@ -462,13 +481,12 @@
   const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
   const CLASSES = ['XE1','XE4','XE5','XE6','XE7','XE8','XE9','XE10','XE11'];
-  const CATS = ['vocabulary_box','answering','presenting','task_on_time','helping_hand','quiz'];
+  const CATS    = ['vocabulary_box','answering','presenting','task_on_time','helping_hand','quiz'];
 
-  let currentClass = null;
-  let students = [];     // { id, full_name, activeness_id, vocab, answering, ... }
-  let saveTimer = null;
+  let students   = [];
+  let saveTimer  = null;
+  const pending  = new Set();
 
-  // Auth
   async function init() {
     const { data: { user } } = await db.auth.getUser();
     if (!user) { window.location.href = '/index.html'; return; }
@@ -478,165 +496,135 @@
     document.getElementById('user-name').textContent = name;
     document.getElementById('avatar-initials').textContent = name[0].toUpperCase();
 
-    buildClassTabs();
-  }
-
-  function buildClassTabs() {
-    const container = document.getElementById('class-tabs');
-    container.innerHTML = CLASSES.map(cls => `
-      <button class="class-tab" onclick="selectClass('${cls}')">${cls}</button>
-    `).join('');
+    // Build class tabs
+    document.getElementById('class-tabs').innerHTML = CLASSES.map(c =>
+      `<button class="class-tab" onclick="selectClass('${c}')">${c}</button>`
+    ).join('');
   }
 
   async function selectClass(cls) {
-    currentClass = cls;
-
-    // Update tab UI
-    document.querySelectorAll('.class-tab').forEach(t => {
-      t.classList.toggle('active', t.textContent === cls);
-    });
+    // Tab highlight
+    document.querySelectorAll('.class-tab').forEach(t =>
+      t.classList.toggle('active', t.textContent === cls)
+    );
 
     document.getElementById('search').value = '';
-    document.getElementById('table-area').innerHTML = '<div class="state-msg">Loading...</div>';
+    setLoading();
 
-    // Fetch students + their activeness
-    const { data: classData } = await db
-      .from('classes')
-      .select('id')
-      .eq('name', cls)
-      .single();
+    // Get class id
+    const { data: classRow } = await db.from('classes').select('id').eq('name', cls).single();
+    if (!classRow) return;
 
-    if (!classData) return;
-
-    const { data: studentData } = await db
+    // Get students
+    const { data: rows } = await db
       .from('students')
       .select('id, full_name')
-      .eq('class_id', classData.id)
+      .eq('class_id', classRow.id)
       .order('full_name');
 
-    if (!studentData || studentData.length === 0) {
-      document.getElementById('table-area').innerHTML = '<div class="state-msg">No students found in this class.</div>';
+    if (!rows || rows.length === 0) {
+      document.getElementById('tbody').innerHTML =
+        `<tr><td colspan="8"><div class="state-msg">No students in this class.</div></td></tr>`;
       return;
     }
 
-    const studentIds = studentData.map(s => s.id);
-
-    const { data: activenessData } = await db
+    // Get activeness
+    const { data: acts } = await db
       .from('activeness')
       .select('*')
-      .in('student_id', studentIds);
+      .in('student_id', rows.map(r => r.id));
 
-    // Map activeness by student_id
     const actMap = {};
-    (activenessData || []).forEach(a => { actMap[a.student_id] = a; });
+    (acts || []).forEach(a => actMap[a.student_id] = a);
 
-    students = studentData.map(s => ({
-      id: s.id,
-      full_name: s.full_name,
-      activeness_id: actMap[s.id]?.id || null,
-      vocabulary_box: actMap[s.id]?.vocabulary_box || 0,
-      answering:      actMap[s.id]?.answering || 0,
-      presenting:     actMap[s.id]?.presenting || 0,
-      task_on_time:   actMap[s.id]?.task_on_time || 0,
-      helping_hand:   actMap[s.id]?.helping_hand || 0,
-      quiz:           actMap[s.id]?.quiz || 0,
+    students = rows.map(r => ({
+      id:            r.id,
+      full_name:     r.full_name,
+      activeness_id: actMap[r.id]?.id || null,
+      vocabulary_box: actMap[r.id]?.vocabulary_box || 0,
+      answering:      actMap[r.id]?.answering      || 0,
+      presenting:     actMap[r.id]?.presenting     || 0,
+      task_on_time:   actMap[r.id]?.task_on_time   || 0,
+      helping_hand:   actMap[r.id]?.helping_hand   || 0,
+      quiz:           actMap[r.id]?.quiz           || 0,
     }));
 
-    renderTable(students);
+    renderRows(students);
   }
 
-  function renderTable(list) {
-    const area = document.getElementById('table-area');
-
-    if (list.length === 0) {
-      area.innerHTML = '<div class="state-msg">No students match your search.</div>';
+  function renderRows(list) {
+    if (!list.length) {
+      document.getElementById('tbody').innerHTML =
+        `<tr><td colspan="8"><div class="state-msg">No students match your search.</div></td></tr>`;
       return;
     }
 
-    area.innerHTML = list.map((s, i) => `
-      <div class="student-row" data-id="${s.id}" data-name="${s.full_name.toLowerCase()}">
-        <div class="student-name">
-          <span class="rank">${String(i + 1).padStart(2,'0')}</span>
-          ${s.full_name}
-        </div>
+    document.getElementById('tbody').innerHTML = list.map((s, i) => `
+      <tr data-name="${s.full_name.toLowerCase()}">
+        <td class="col-no">${String(i + 1).padStart(2, '0')}</td>
+        <td class="col-name" title="${s.full_name}">${s.full_name}</td>
         ${CATS.map(cat => `
-          <div class="counter">
-            <button class="counter-btn minus" onclick="adjust('${s.id}','${cat}',-1)">−</button>
-            <input
-              class="counter-input"
-              type="number"
-              min="0"
-              value="${s[cat]}"
-              data-student="${s.id}"
-              data-cat="${cat}"
-              onchange="setDirect('${s.id}','${cat}',this)"
-              onfocus="this.select()"
-            />
-            <button class="counter-btn plus" onclick="adjust('${s.id}','${cat}',1)">+</button>
-          </div>
+          <td class="col-cat">
+            <div class="counter">
+              <button class="cbtn minus" onclick="adjust('${s.id}','${cat}',-1)">−</button>
+              <input class="cval" type="number" min="0"
+                value="${s[cat]}"
+                data-sid="${s.id}" data-cat="${cat}"
+                onchange="setVal('${s.id}','${cat}',this)"
+                onfocus="this.select()"
+              />
+              <button class="cbtn plus" onclick="adjust('${s.id}','${cat}',1)">+</button>
+            </div>
+          </td>
         `).join('')}
-      </div>
+      </tr>
     `).join('');
+  }
+
+  function setLoading() {
+    document.getElementById('tbody').innerHTML =
+      `<tr><td colspan="8"><div class="state-msg">Loading...</div></td></tr>`;
   }
 
   function filterStudents() {
     const q = document.getElementById('search').value.toLowerCase();
-    const filtered = students.filter(s => s.full_name.toLowerCase().includes(q));
-    renderTable(filtered);
+    renderRows(students.filter(s => s.full_name.toLowerCase().includes(q)));
   }
 
-  function getStudentIndex(studentId) {
-    return students.findIndex(s => s.id === studentId);
+  function adjust(sid, cat, delta) {
+    const s = students.find(s => s.id === sid);
+    if (!s) return;
+    s[cat] = Math.max(0, s[cat] + delta);
+    const inp = document.querySelector(`input[data-sid="${sid}"][data-cat="${cat}"]`);
+    if (inp) inp.value = s[cat];
+    scheduleSave(sid);
   }
 
-  function adjust(studentId, cat, delta) {
-    const idx = getStudentIndex(studentId);
-    if (idx === -1) return;
-
-    const newVal = Math.max(0, students[idx][cat] + delta);
-    students[idx][cat] = newVal;
-
-    // Update input in DOM
-    const input = document.querySelector(`input[data-student="${studentId}"][data-cat="${cat}"]`);
-    if (input) input.value = newVal;
-
-    scheduleSave(studentId);
+  function setVal(sid, cat, input) {
+    const s = students.find(s => s.id === sid);
+    if (!s) return;
+    s[cat] = Math.max(0, parseInt(input.value) || 0);
+    input.value = s[cat];
+    scheduleSave(sid);
   }
 
-  function setDirect(studentId, cat, input) {
-    const idx = getStudentIndex(studentId);
-    if (idx === -1) return;
-
-    const newVal = Math.max(0, parseInt(input.value) || 0);
-    students[idx][cat] = newVal;
-    input.value = newVal;
-
-    scheduleSave(studentId);
-  }
-
-  // Debounce saves — wait 800ms after last change before saving
-  const pendingSaves = new Set();
-
-  function scheduleSave(studentId) {
-    pendingSaves.add(studentId);
-    showIndicator('saving');
-
+  function scheduleSave(sid) {
+    pending.add(sid);
+    showToast('saving');
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(() => {
-      saveAll();
-    }, 800);
+    saveTimer = setTimeout(saveAll, 800);
   }
 
   async function saveAll() {
-    const ids = [...pendingSaves];
-    pendingSaves.clear();
+    const ids = [...pending];
+    pending.clear();
 
-    for (const studentId of ids) {
-      const s = students.find(s => s.id === studentId);
+    for (const sid of ids) {
+      const s = students.find(s => s.id === sid);
       if (!s) continue;
 
       const payload = {
-        student_id:    s.id,
+        student_id:     s.id,
         vocabulary_box: s.vocabulary_box,
         answering:      s.answering,
         presenting:     s.presenting,
@@ -647,41 +635,25 @@
       };
 
       if (s.activeness_id) {
-        // Update existing row
-        const { data } = await db
-          .from('activeness')
-          .update(payload)
-          .eq('id', s.activeness_id)
-          .select('id')
-          .single();
+        await db.from('activeness').update(payload).eq('id', s.activeness_id);
       } else {
-        // Insert new row
-        const { data } = await db
-          .from('activeness')
-          .insert(payload)
-          .select('id')
-          .single();
-
-        if (data) {
-          const idx = getStudentIndex(studentId);
-          if (idx !== -1) students[idx].activeness_id = data.id;
-        }
+        const { data } = await db.from('activeness').insert(payload).select('id').single();
+        if (data) s.activeness_id = data.id;
       }
     }
 
-    showIndicator('saved');
-    setTimeout(() => hideIndicator(), 2000);
+    showToast('saved');
+    setTimeout(hideToast, 2000);
   }
 
-  function showIndicator(state) {
-    const el = document.getElementById('save-indicator');
-    const txt = document.getElementById('save-text');
-    el.className = 'save-indicator show ' + state;
-    txt.textContent = state === 'saving' ? 'Saving...' : 'Saved';
+  function showToast(state) {
+    const el = document.getElementById('toast');
+    document.getElementById('toast-text').textContent = state === 'saving' ? 'Saving...' : 'Saved';
+    el.className = 'toast show ' + state;
   }
 
-  function hideIndicator() {
-    document.getElementById('save-indicator').className = 'save-indicator';
+  function hideToast() {
+    document.getElementById('toast').className = 'toast';
   }
 
   async function handleLogout() {
