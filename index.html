@@ -792,15 +792,15 @@
       Your learning portal for English class.<br>
       Track scores, submit tasks, and stay on top of your progress.
     </p>
-    <div class="hero-actions">
-      <a class="btn-hero primary" href="/index-login.html">
-        Log In to Your Account
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-      </a>
-      <button class="btn-hero outline" onclick="scrollTo({top: document.getElementById('hof').offsetTop - 80, behavior:'smooth'})">
-        See Hall of Fame
-      </button>
-    </div>
+    <div class="hero-actions" id="hero-actions">
+  <a class="btn-hero primary" href="/index-login.html">
+    Log In to Your Account
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+  </a>
+  <button class="btn-hero outline" onclick="scrollTo({top: document.getElementById('hof').offsetTop - 80, behavior:'smooth'})">
+    See Hall of Fame
+  </button>
+</div>
   </div>
 
   <div class="scroll-hint">
@@ -1041,6 +1041,36 @@
   loadHoF();
   loadAnnouncement();
   loadSummative();
+  async function checkAuth() {
+  const { data: { user } } = await db.auth.getUser();
+  if (!user) return;
+
+  const role = user.user_metadata?.role;
+  const name = role === 'teacher' 
+    ? user.email.split('@')[0] 
+    : null;
+
+  let displayName = name;
+  if (role === 'student') {
+    const { data: student } = await db.from('students').select('full_name').eq('user_id', user.id).single();
+    displayName = student?.full_name.split(' ')[0] || 'Student';
+  }
+
+  document.getElementById('hero-actions').innerHTML = `
+    <a class="btn-hero primary" href="${role === 'teacher' ? '/teacher/dashboard.html' : '/student/dashboard.html'}">
+      Go to My Dashboard
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </a>
+    <button class="btn-hero outline" onclick="handleLogout()">Sign Out, ${displayName}</button>
+  `;
+}
+
+async function handleLogout() {
+  await db.auth.signOut();
+  window.location.reload();
+}
+
+checkAuth();
 </script>
 </body>
 </html>
