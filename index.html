@@ -1026,8 +1026,14 @@
 
   // Announcement (placeholder — will be wired to Supabase later)
   async function loadAnnouncement() {
-    // Will be replaced with Supabase query once announcement table is created
-  }
+  const { data } = await db.from('announcements').select('*').order('posted_at', { ascending: false }).limit(1).single();
+  if (!data) return;
+  const colors = { info:'#7c6ffa', warning:'#e8a030', success:'#34d399', urgent:'#f87171' };
+  document.getElementById('annDot').style.background = colors[data.type] || '#7c6ffa';
+  document.getElementById('annTitle').textContent = data.title || '';
+  document.getElementById('annBody').textContent = data.body || '';
+  document.getElementById('annStrip').classList.add('show');
+}
 
   function dismissAnn() {
     document.getElementById('annStrip').classList.remove('show');
@@ -1035,8 +1041,17 @@
 
   // Summative (placeholder — will be wired to Supabase later)
   async function loadSummative() {
-    // Will be replaced with Supabase query once summative table is created
-  }
+  const { data } = await db.from('summative').select('*').order('updated_at', { ascending: false }).limit(1).single();
+  if (!data) return;
+  const date = new Date(data.exam_date + 'T00:00:00');
+  const dateStr = date.toLocaleDateString('en-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  const diff = date - new Date();
+  const days = Math.ceil(diff / 86400000);
+  const countdown = days > 0 ? `⏳ ${days} day${days !== 1 ? 's' : ''} left` : '🔴 Exam Day!';
+  document.getElementById('summText').innerHTML = `<strong>${data.title}</strong> · ${dateStr}`;
+  document.getElementById('summCountdown').textContent = countdown;
+  document.getElementById('summStrip').classList.add('show');
+}
 
   // Init
   loadStats();
@@ -1057,7 +1072,7 @@
     const { data: student } = await db.from('students').select('full_name').eq('user_id', user.id).single();
     displayName = student?.full_name.split(' ')[0] || 'Student';
   }
-  
+
   document.getElementById('hero-actions').innerHTML = `
     <a class="btn-hero primary" href="${role === 'teacher' ? '/teacher/dashboard.html' : '/student/dashboard.html'}">
       Go to My Dashboard
