@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>English Quest — Scores</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:      #0c0c0f;
+      --surface: #131317;
+      --surface2:#1a1a20;
+      --border:  #222228;
+      --accent:  #7c6ffa;
+      --amber:   #e8a030;
+      --text:    #dddde8;
+      --muted:   #5a5a70;
+      --subtle:  #2e2e3a;
+      --success: #34d399;
+      --danger:  #f87171;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      font-size: 14px;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 210px;
+      flex-shrink: 0;
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-top {
+      padding: 1.75rem 1.5rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .wordmark {
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .school-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 0.3rem;
+      font-weight: 300;
+    }
+
+    .nav {
+      flex: 1;
+      padding: 1.25rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      overflow-y: auto;
+    }
+
+    .nav-group-label {
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 1rem 0.5rem 0.4rem;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.5rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 400;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.12s, background 0.12s;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .nav-link svg { width: 14px; height: 14px; flex-shrink: 0; stroke: currentColor; }
+    .nav-link:hover { color: var(--text); background: var(--surface2); }
+    .nav-link.active { color: var(--text); background: var(--surface2); font-weight: 500; }
+
+    .sidebar-foot {
+      padding: 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .user-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.4rem 0.5rem;
+    }
+
+    .avatar {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--subtle);
+      color: var(--accent);
+      font-size: 0.75rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .user-meta { flex: 1; min-width: 0; }
+    .user-name { font-size: 0.8rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+    .user-role { font-size: 0.68rem; color: var(--muted); }
+
+    .btn-logout {
+      background: none; border: none; cursor: pointer;
+      color: var(--muted); padding: 0.2rem;
+      border-radius: 4px; transition: color 0.12s;
+      display: flex; align-items: center;
+    }
+    .btn-logout:hover { color: var(--danger); }
+    .btn-logout svg { width: 14px; height: 14px; }
+
+    /* ── Main ── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    /* Topbar */
+    .topbar {
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-shrink: 0;
+    }
+
+    .page-heading {
+      font-size: 1.2rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    /* Class tabs */
+    .class-tabs {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .class-tab {
+      padding: 0.3rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--muted);
+      background: none;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.12s;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .class-tab:hover { color: var(--text); border-color: var(--subtle); }
+    .class-tab.active { color: var(--text); background: var(--surface2); border-color: var(--accent); }
+
+    /* Chapter tabs */
+    .chapter-bar {
+      padding: 0.75rem 2rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-shrink: 0;
+      background: var(--surface);
+    }
+
+    .chapter-tab {
+      padding: 0.35rem 0.9rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--muted);
+      background: none;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.12s;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .chapter-tab:hover { color: var(--text); }
+    .chapter-tab.active {
+      color: var(--text);
+      background: var(--surface2);
+      border-color: var(--border);
+    }
+
+    .chapter-divider {
+      width: 1px;
+      height: 18px;
+      background: var(--border);
+      margin: 0 0.25rem;
+    }
+
+    /* Search */
+    .toolbar {
+      padding: 0.75rem 2rem;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .search-input {
+      width: 260px;
+      padding: 0.45rem 0.85rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 0.84rem;
+      font-family: 'DM Sans', sans-serif;
+      outline: none;
+      transition: border-color 0.12s;
+    }
+
+    .search-input::placeholder { color: var(--muted); }
+    .search-input:focus { border-color: var(--accent); }
+
+    .toolbar-info {
+      font-size: 0.78rem;
+      color: var(--muted);
+      font-weight: 300;
+    }
+
+    /* ── Table ── */
+    .table-wrap {
+      flex: 1;
+      overflow: auto;
+    }
+
+    table {
+      border-collapse: collapse;
+      min-width: 100%;
+    }
+
+    thead {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--surface);
+    }
+
+    thead th {
+      font-size: 0.67rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      padding: 0.75rem 0.5rem;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      text-align: center;
+    }
+
+    thead th.col-fixed-no   { width: 40px;  padding-left: 2rem; text-align: left; }
+    thead th.col-fixed-name { width: 200px; text-align: left; padding-left: 0; }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+
+    tbody tr:hover { background: var(--surface); }
+
+    tbody td {
+      padding: 0.45rem 0.5rem;
+      vertical-align: middle;
+      text-align: center;
+    }
+
+    td.col-no {
+      padding-left: 2rem;
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-weight: 300;
+      text-align: left;
+      width: 40px;
+    }
+
+    td.col-name {
+      width: 200px;
+      font-size: 0.84rem;
+      font-weight: 400;
+      color: var(--text);
+      text-align: left;
+      padding-left: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 200px;
+    }
+
+    /* Score input */
+    .score-input {
+      width: 52px;
+      text-align: center;
+      padding: 0.3rem 0.2rem;
+      background: none;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      color: var(--text);
+      font-size: 0.84rem;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      outline: none;
+      transition: border-color 0.12s, background 0.12s;
+      -moz-appearance: textfield;
+    }
+
+    .score-input::-webkit-inner-spin-button,
+    .score-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    .score-input:focus {
+      border-color: var(--accent);
+      background: var(--surface2);
+    }
+
+    .score-input.has-value { color: var(--text); }
+    .score-input.empty { color: var(--muted); }
+
+    /* Final score (calculated, read-only) */
+    .final-display {
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--amber);
+      width: 52px;
+      text-align: center;
+      display: inline-block;
+    }
+
+    /* State messages */
+    .state-msg {
+      padding: 3rem 2rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      font-weight: 300;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.55rem 1rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+      display: none;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      z-index: 100;
+    }
+
+    .toast.show   { display: flex; }
+    .toast.saving { color: var(--amber);   border-color: rgba(232,160,48,0.3); }
+    .toast.saved  { color: var(--success); border-color: rgba(52,211,153,0.3); }
+
+    .main { animation: fadeUp 0.25s ease both; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-top">
+    <div class="wordmark">English Quest</div>
+    <div class="school-label">SMA Negeri 6 Surakarta</div>
+  </div>
+  <nav class="nav">
+    <span class="nav-group-label">Main</span>
+    <a class="nav-link" href="/teacher/dashboard.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </a>
+    <a class="nav-link" href="/teacher/activeness.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      Activeness
+    </a>
+    <a class="nav-link active" href="/teacher/scores.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Scores
+    </a>
+    <span class="nav-group-label">Management</span>
+    <a class="nav-link" href="/teacher/submissions.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+      Submissions
+    </a>
+    <a class="nav-link" href="/teacher/attendance.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      Attendance
+    </a>
+    <a class="nav-link" href="/teacher/strikes.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Strikes
+    </a>
+    <a class="nav-link" href="/teacher/materials.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      Materials
+    </a>
+    <a class="nav-link" href="/teacher/gallery.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      Gallery
+    </a>
+  </nav>
+  <div class="sidebar-foot">
+    <div class="user-row">
+      <div class="avatar" id="avatar-initials">—</div>
+      <div class="user-meta">
+        <div class="user-name" id="user-name">Loading</div>
+        <div class="user-role">Teacher</div>
+      </div>
+      <button class="btn-logout" onclick="handleLogout()" title="Log out">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </div>
+</aside>
+
+<!-- Main -->
+<div class="main">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="page-heading">Scores</div>
+    <div class="topbar-right">
+      <div class="class-tabs" id="class-tabs"></div>
+    </div>
+  </div>
+
+  <!-- Chapter tabs -->
+  <div class="chapter-bar">
+    <button class="chapter-tab active" onclick="selectChapter('C4')">Chapter 4</button>
+    <button class="chapter-tab" onclick="selectChapter('C5')">Chapter 5</button>
+    <div class="chapter-divider"></div>
+    <button class="chapter-tab" onclick="selectChapter('ASAT')">ASAT</button>
+    <button class="chapter-tab" onclick="selectChapter('FINAL')">Final Score</button>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <input class="search-input" type="text" id="search" placeholder="Search student..." oninput="filterStudents()">
+    <div class="toolbar-info" id="toolbar-info"></div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <table id="main-table">
+      <thead id="thead"><tr><th colspan="20"><div class="state-msg">Select a class to begin.</div></th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"><span id="toast-text">Saving...</span></div>
+
+<script>
+  const SUPABASE_URL = 'https://unbvljjgiqyphtykbkdb.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_DFTQJ5niT0OiWVwpeNwM1A_W18mJ1oT';
+  const { createClient } = supabase;
+  const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const CLASSES = ['XE1','XE4','XE5','XE6','XE7','XE8','XE9','XE10','XE11'];
+
+  // Chapter definitions
+  const CHAPTERS = {
+    C4:    { label: 'Chapter 4', tasks: [1,2,3,4,5,6,7] },
+    C5:    { label: 'Chapter 5', tasks: [1,2,3,4,5] },
+    ASAT:  { label: 'ASAT',      tasks: null },
+    FINAL: { label: 'Final Score', tasks: null },
+  };
+
+  let currentClass   = null;
+  let currentChapter = 'C4';
+  let students       = [];
+  let scoresMap      = {}; // { student_id: { task_number: { id, score } } }
+  let saveTimer      = null;
+  const pending      = new Set();
+
+  async function init() {
+    const { data: { user } } = await db.auth.getUser();
+    if (!user) { window.location.href = '/index-login.html'; return; }
+    if (user.user_metadata?.role !== 'teacher') { window.location.href = '/student/dashboard.html'; return; }
+
+    const name = user.email.split('@')[0];
+    document.getElementById('user-name').textContent = name;
+    document.getElementById('avatar-initials').textContent = name[0].toUpperCase();
+
+    document.getElementById('class-tabs').innerHTML = CLASSES.map(c =>
+      `<button class="class-tab" onclick="selectClass('${c}')">${c}</button>`
+    ).join('');
+  }
+
+  async function selectClass(cls) {
+    currentClass = cls;
+    document.querySelectorAll('.class-tab').forEach(t =>
+      t.classList.toggle('active', t.textContent === cls)
+    );
+    document.getElementById('search').value = '';
+    await loadData();
+  }
+
+  function selectChapter(ch) {
+    currentChapter = ch;
+    document.querySelectorAll('.chapter-tab').forEach(t =>
+      t.classList.toggle('active', t.textContent === CHAPTERS[ch].label)
+    );
+    if (currentClass) renderTable(students);
+  }
+
+  async function loadData() {
+    setLoading();
+
+    const { data: classRow } = await db.from('classes').select('id').eq('name', currentClass).single();
+    if (!classRow) return;
+
+    const { data: rows } = await db
+      .from('students')
+      .select('id, full_name')
+      .eq('class_id', classRow.id)
+      .order('full_name');
+
+    if (!rows || rows.length === 0) {
+      setEmpty();
+      return;
+    }
+
+    // Fetch all scores for this class
+    const { data: scoreRows } = await db
+      .from('scores')
+      .select('*')
+      .in('student_id', rows.map(r => r.id));
+
+    // Build scores map: { student_id -> { chapter+task_number -> { id, score } } }
+    scoresMap = {};
+    (scoreRows || []).forEach(s => {
+      if (!scoresMap[s.student_id]) scoresMap[s.student_id] = {};
+      const key = s.chapter + '_' + s.task_number;
+      scoresMap[s.student_id][key] = { id: s.id, score: s.score };
+    });
+
+    students = rows;
+    renderTable(students);
+
+    document.getElementById('toolbar-info').textContent = `${rows.length} students`;
+  }
+
+  function renderTable(list) {
+    if (!list.length) {
+      setEmpty();
+      return;
+    }
+
+    const ch   = currentChapter;
+    const def  = CHAPTERS[ch];
+    const thead = document.getElementById('thead');
+    const tbody = document.getElementById('tbody');
+
+    // Build header
+    let headerHtml = '<tr>';
+    headerHtml += '<th class="col-fixed-no">#</th>';
+    headerHtml += '<th class="col-fixed-name">Student</th>';
+
+    if (ch === 'C4' || ch === 'C5') {
+      def.tasks.forEach(t => {
+        headerHtml += `<th>T${t}</th>`;
+      });
+      headerHtml += '<th style="color:var(--amber)">Avg</th>';
+    } else if (ch === 'ASAT') {
+      headerHtml += '<th>ASAT Score</th>';
+    } else if (ch === 'FINAL') {
+      headerHtml += '<th>Sem 1</th>';
+      headerHtml += '<th>Sem 2</th>';
+      headerHtml += '<th style="color:var(--amber)">Final Avg</th>';
+    }
+
+    headerHtml += '</tr>';
+    thead.innerHTML = headerHtml;
+
+    // Build rows
+    tbody.innerHTML = list.map((s, i) => {
+      let cells = '';
+
+      if (ch === 'C4' || ch === 'C5') {
+        const taskScores = def.tasks.map(t => {
+          const key = ch + '_' + t;
+          return scoresMap[s.id]?.[key]?.score ?? null;
+        });
+
+        cells = def.tasks.map((t, idx) => {
+          const val = taskScores[idx];
+          const key = ch + '_' + t;
+          return `<td>
+            <input class="score-input ${val !== null ? 'has-value' : 'empty'}"
+              type="number" min="0" max="100"
+              value="${val !== null ? val : ''}"
+              placeholder="—"
+              data-sid="${s.id}" data-key="${key}" data-ch="${ch}" data-task="${t}"
+              onchange="setScore('${s.id}','${key}','${ch}',${t},this)"
+              onfocus="this.select()"
+            />
+          </td>`;
+        }).join('');
+
+        // Average
+        const filled = taskScores.filter(v => v !== null);
+        const avg = filled.length ? Math.round(filled.reduce((a,b) => a+b,0) / filled.length) : null;
+        cells += `<td><span class="final-display">${avg !== null ? avg : '—'}</span></td>`;
+
+      } else if (ch === 'ASAT') {
+        const key = 'ASAT_1';
+        const val = scoresMap[s.id]?.[key]?.score ?? null;
+        cells = `<td>
+          <input class="score-input ${val !== null ? 'has-value' : 'empty'}"
+            type="number" min="0" max="100"
+            value="${val !== null ? val : ''}"
+            placeholder="—"
+            data-sid="${s.id}" data-key="${key}" data-ch="ASAT" data-task="1"
+            onchange="setScore('${s.id}','${key}','ASAT',1,this)"
+            onfocus="this.select()"
+          />
+        </td>`;
+
+      } else if (ch === 'FINAL') {
+        const key1 = 'FINAL_1';
+        const key2 = 'FINAL_2';
+        const sem1 = scoresMap[s.id]?.[key1]?.score ?? null;
+        const sem2 = scoresMap[s.id]?.[key2]?.score ?? null;
+        const avg  = sem1 !== null && sem2 !== null ? Math.round((sem1 + sem2) / 2) : null;
+
+        cells = `
+          <td>
+            <input class="score-input ${sem1 !== null ? 'has-value' : 'empty'}"
+              type="number" min="0" max="100"
+              value="${sem1 !== null ? sem1 : ''}"
+              placeholder="—"
+              data-sid="${s.id}" data-key="${key1}" data-ch="FINAL" data-task="1"
+              onchange="setScore('${s.id}','${key1}','FINAL',1,this)"
+              onfocus="this.select()"
+            />
+          </td>
+          <td>
+            <input class="score-input ${sem2 !== null ? 'has-value' : 'empty'}"
+              type="number" min="0" max="100"
+              value="${sem2 !== null ? sem2 : ''}"
+              placeholder="—"
+              data-sid="${s.id}" data-key="${key2}" data-ch="FINAL" data-task="2"
+              onchange="setScore('${s.id}','${key2}','FINAL',2,this)"
+              onfocus="this.select()"
+            />
+          </td>
+          <td><span class="final-display" id="final-avg-${s.id}">${avg !== null ? avg : '—'}</span></td>`;
+      }
+
+      return `<tr data-name="${s.full_name.toLowerCase()}">
+        <td class="col-no">${String(i+1).padStart(2,'0')}</td>
+        <td class="col-name" title="${s.full_name}">${s.full_name}</td>
+        ${cells}
+      </tr>`;
+    }).join('');
+  }
+
+  function filterStudents() {
+    const q = document.getElementById('search').value.toLowerCase();
+    renderTable(students.filter(s => s.full_name.toLowerCase().includes(q)));
+  }
+
+  function setScore(sid, key, chapter, taskNum, input) {
+    const raw = input.value.trim();
+    const val = raw === '' ? null : Math.min(100, Math.max(0, parseFloat(raw) || 0));
+
+    if (val !== null) {
+      input.value = val;
+      input.classList.add('has-value');
+      input.classList.remove('empty');
+    } else {
+      input.classList.remove('has-value');
+      input.classList.add('empty');
+    }
+
+    if (!scoresMap[sid]) scoresMap[sid] = {};
+    if (!scoresMap[sid][key]) scoresMap[sid][key] = { id: null, score: null };
+    scoresMap[sid][key].score = val;
+
+    // Update live average display
+    updateAvgDisplay(sid);
+
+    pending.add(JSON.stringify({ sid, key, chapter, taskNum }));
+    showToast('saving');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveAll, 800);
+  }
+
+  function updateAvgDisplay(sid) {
+    const ch = currentChapter;
+
+    if (ch === 'C4' || ch === 'C5') {
+      const tasks = CHAPTERS[ch].tasks;
+      const vals  = tasks.map(t => scoresMap[sid]?.[ch+'_'+t]?.score ?? null).filter(v => v !== null);
+      const avg   = vals.length ? Math.round(vals.reduce((a,b)=>a+b,0)/vals.length) : null;
+      // Find avg cell in same row
+      const row = document.querySelector(`tr[data-name] input[data-sid="${sid}"]`)?.closest('tr');
+      if (row) {
+        const avgEl = row.querySelector('.final-display');
+        if (avgEl) avgEl.textContent = avg !== null ? avg : '—';
+      }
+    }
+
+    if (ch === 'FINAL') {
+      const sem1 = scoresMap[sid]?.['FINAL_1']?.score ?? null;
+      const sem2 = scoresMap[sid]?.['FINAL_2']?.score ?? null;
+      const avg  = sem1 !== null && sem2 !== null ? Math.round((sem1+sem2)/2) : null;
+      const el   = document.getElementById(`final-avg-${sid}`);
+      if (el) el.textContent = avg !== null ? avg : '—';
+    }
+  }
+
+  async function saveAll() {
+    const items = [...pending].map(j => JSON.parse(j));
+    pending.clear();
+
+    for (const { sid, key, chapter, taskNum } of items) {
+      const entry = scoresMap[sid]?.[key];
+      if (!entry) continue;
+
+      if (entry.score === null) {
+        // Delete if exists
+        if (entry.id) {
+          await db.from('scores').delete().eq('id', entry.id);
+          scoresMap[sid][key].id = null;
+        }
+        continue;
+      }
+
+      const payload = {
+        student_id:  sid,
+        chapter:     chapter,
+        task_number: taskNum,
+        score:       entry.score,
+        updated_at:  new Date().toISOString(),
+      };
+
+      if (entry.id) {
+        await db.from('scores').update(payload).eq('id', entry.id);
+      } else {
+        const { data } = await db.from('scores').insert(payload).select('id').single();
+        if (data) scoresMap[sid][key].id = data.id;
+      }
+    }
+
+    showToast('saved');
+    setTimeout(hideToast, 2000);
+  }
+
+  function setLoading() {
+    document.getElementById('thead').innerHTML = '<tr><th colspan="20"></th></tr>';
+    document.getElementById('tbody').innerHTML = `<tr><td colspan="20"><div class="state-msg">Loading...</div></td></tr>`;
+  }
+
+  function setEmpty() {
+    document.getElementById('tbody').innerHTML = `<tr><td colspan="20"><div class="state-msg">No students found.</div></td></tr>`;
+  }
+
+  function showToast(state) {
+    const el  = document.getElementById('toast');
+    const txt = document.getElementById('toast-text');
+    txt.textContent = state === 'saving' ? 'Saving...' : 'Saved';
+    el.className = 'toast show ' + state;
+  }
+
+  function hideToast() {
+    document.getElementById('toast').className = 'toast';
+  }
+
+  async function handleLogout() {
+    await db.auth.signOut();
+    window.location.href = '/index-login.html';
+  }
+
+  init();
+</script>
+</body>
+</html>
