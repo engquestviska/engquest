@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>English Quest — Task Status</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--bg:#0c0c0f;--surface:#131317;--surface2:#1a1a20;--border:#222228;--accent:#7c6ffa;--amber:#e8a030;--text:#dddde8;--muted:#5a5a70;--subtle:#2e2e3a;--success:#34d399;--danger:#f87171}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;font-size:14px}
+    .sidebar{width:210px;flex-shrink:0;height:100vh;position:sticky;top:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column}
+    .sidebar-top{padding:1.75rem 1.5rem 1.5rem;border-bottom:1px solid var(--border)}
+    .wordmark{font-size:.9rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--text)}
+    .school-label{font-size:.72rem;color:var(--muted);margin-top:.3rem;font-weight:300}
+    .nav{flex:1;padding:1.25rem 1rem;display:flex;flex-direction:column;gap:1px;overflow-y:auto}
+    .nav-group-label{font-size:.65rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:1rem .5rem .4rem}
+    .nav-link{display:flex;align-items:center;gap:.6rem;padding:.5rem .6rem;border-radius:6px;font-size:.875rem;font-weight:400;color:var(--muted);text-decoration:none;transition:color .12s,background .12s;border:none;background:none;width:100%;text-align:left;cursor:pointer}
+    .nav-link svg{width:14px;height:14px;flex-shrink:0;stroke:currentColor}
+    .nav-link:hover{color:var(--text);background:var(--surface2)}
+    .nav-link.active{color:var(--text);background:var(--surface2);font-weight:500}
+    .sidebar-foot{padding:1rem;border-top:1px solid var(--border)}
+    .user-row{display:flex;align-items:center;gap:.6rem;padding:.4rem .5rem}
+    .avatar{width:28px;height:28px;border-radius:50%;background:var(--subtle);color:var(--accent);font-size:.75rem;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .user-meta{flex:1;min-width:0}
+    .user-name{font-size:.8rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+    .user-role{font-size:.68rem;color:var(--muted)}
+    .btn-logout{background:none;border:none;cursor:pointer;color:var(--muted);padding:.2rem;border-radius:4px;transition:color .12s;display:flex;align-items:center}
+    .btn-logout:hover{color:var(--danger)}
+    .btn-logout svg{width:14px;height:14px}
+    .main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+    .topbar{padding:1.5rem 2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-shrink:0;flex-wrap:wrap}
+    .page-heading{font-size:1.2rem;font-weight:600;letter-spacing:-.01em}
+    .topbar-right{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
+    .class-tabs{display:flex;gap:4px;flex-wrap:wrap}
+    .class-tab{padding:.3rem .75rem;border-radius:6px;font-size:.78rem;font-weight:500;color:var(--muted);background:none;border:1px solid var(--border);cursor:pointer;transition:all .12s;font-family:'DM Sans',sans-serif}
+    .class-tab:hover{color:var(--text);border-color:var(--subtle)}
+    .class-tab.active{color:var(--text);background:var(--surface2);border-color:var(--accent)}
+    .toolbar{padding:.75rem 2rem;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
+    .chapter-tab{padding:.3rem .75rem;border-radius:6px;font-size:.78rem;font-weight:500;color:var(--muted);background:none;border:1px solid var(--border);cursor:pointer;transition:all .12s;font-family:'DM Sans',sans-serif}
+    .chapter-tab:hover{color:var(--text)}
+    .chapter-tab.active{color:var(--text);background:var(--surface2);border-color:var(--accent)}
+    .btn-sync{padding:.35rem 1rem;border-radius:6px;font-size:.78rem;font-weight:600;cursor:pointer;border:1px solid rgba(52,211,153,.3);background:rgba(52,211,153,.06);color:var(--success);transition:all .12s;font-family:'DM Sans',sans-serif;margin-left:auto}
+    .btn-sync:hover{background:rgba(52,211,153,.12)}
+    .btn-sync:disabled{opacity:.5;cursor:not-allowed}
+    .search-input{padding:.35rem .75rem;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:.82rem;font-family:'DM Sans',sans-serif;outline:none;width:200px;transition:border-color .12s}
+    .search-input:focus{border-color:var(--accent)}
+    .search-input::placeholder{color:var(--muted)}
+    .table-wrap{flex:1;overflow:auto}
+    table{border-collapse:collapse;min-width:100%}
+    thead{position:sticky;top:0;z-index:10;background:var(--surface)}
+    thead th{font-size:.67rem;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:.75rem .5rem;border-bottom:1px solid var(--border);white-space:nowrap;text-align:center}
+    thead th.col-no{padding-left:2rem;text-align:left;width:40px}
+    thead th.col-name{text-align:left;width:200px;padding-left:0}
+    thead th.col-total{color:var(--amber)}
+    tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+    tbody tr:hover{background:var(--surface)}
+    tbody td{padding:.5rem .5rem;vertical-align:middle;text-align:center}
+    td.col-no{padding-left:2rem;font-size:.72rem;color:var(--muted);text-align:left}
+    td.col-name{font-size:.84rem;text-align:left;padding-left:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
+    td.col-total{font-size:.82rem;font-weight:600;color:var(--amber)}
+    .task-btn{width:32px;height:24px;border-radius:4px;border:1px solid var(--border);background:none;cursor:pointer;font-size:.7rem;font-weight:600;transition:all .12s;font-family:'DM Sans',sans-serif;color:var(--muted)}
+    .task-btn.done{background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.3);color:var(--success)}
+    .task-btn:hover{border-color:var(--subtle);color:var(--text)}
+    .task-btn.done:hover{background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.3);color:var(--danger)}
+    .state-msg{padding:3rem 2rem;color:var(--muted);font-size:.84rem;font-weight:300}
+    .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.55rem 1rem;font-size:.78rem;color:var(--muted);display:none;align-items:center;gap:.5rem;box-shadow:0 4px 20px rgba(0,0,0,.5);z-index:100}
+    .toast.show{display:flex}
+    .toast.success{color:var(--success);border-color:rgba(52,211,153,.3)}
+    .toast.saving{color:var(--amber);border-color:rgba(232,160,48,.3)}
+    .main{animation:fadeUp .25s ease both}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  </style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-top">
+    <div class="wordmark">English Quest</div>
+    <div class="school-label">SMA Negeri 6 Surakarta</div>
+  </div>
+  <nav class="nav">
+    <span class="nav-group-label">Main</span>
+    <a class="nav-link" href="/teacher/dashboard.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</a>
+    <a class="nav-link" href="/teacher/activeness.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Activeness</a>
+    <a class="nav-link" href="/teacher/scores.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Scores</a>
+    <span class="nav-group-label">Management</span>
+    <a class="nav-link" href="/teacher/submissions.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Submissions</a>
+    <a class="nav-link active" href="/teacher/task-status.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Task Status</a>
+    <a class="nav-link" href="/teacher/attendance.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Attendance</a>
+    <a class="nav-link" href="/teacher/strikes.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Strikes</a>
+    <a class="nav-link" href="/teacher/materials.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>Materials</a>
+    <a class="nav-link" href="/teacher/gallery.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Gallery</a>
+  </nav>
+  <div class="sidebar-foot">
+    <div class="user-row">
+      <div class="avatar" id="avatar-initials">—</div>
+      <div class="user-meta">
+        <div class="user-name" id="user-name">Loading</div>
+        <div class="user-role">Teacher</div>
+      </div>
+      <button class="btn-logout" onclick="handleLogout()" title="Log out">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </div>
+</aside>
+<div class="main">
+  <div class="topbar">
+    <div class="page-heading">Task Status</div>
+    <div class="topbar-right">
+      <div class="class-tabs" id="class-tabs"></div>
+    </div>
+  </div>
+  <div class="toolbar">
+    <button class="chapter-tab active" onclick="selectChapter('C4',this)">Chapter 4</button>
+    <button class="chapter-tab" onclick="selectChapter('C5',this)">Chapter 5</button>
+    <input class="search-input" type="text" id="search" placeholder="Search student..." oninput="filterStudents()">
+    <button class="btn-sync" id="sync-btn" onclick="syncSubmissions()" disabled>⟳ Sync Submissions</button>
+  </div>
+  <div class="table-wrap">
+    <table id="main-table">
+      <thead id="thead"><tr><th colspan="20"><div class="state-msg">Select a class to begin.</div></th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+<div class="toast" id="toast"><span id="toast-text"></span></div>
+<script>
+const SUPABASE_URL='https://unbvljjgiqyphtykbkdb.supabase.co';
+const SUPABASE_KEY='sb_publishable_DFTQJ5niT0OiWVwpeNwM1A_W18mJ1oT';
+const{createClient}=supabase;
+const db=createClient(SUPABASE_URL,SUPABASE_KEY);
+const CLASSES=['XE1','XE4','XE5','XE6','XE7','XE8','XE9','XE10','XE11'];
+const CHAPTERS={C4:7,C5:5};
+let currentClass=null,currentChapter='C4',students=[],statusMap={},submissionsMap={};
+let saveTimer=null;
+const pending=new Set();
+
+async function init(){
+  const{data:{user}}=await db.auth.getUser();
+  if(!user){window.location.href='/index-login.html';return}
+  if(user.user_metadata?.role!=='teacher'){window.location.href='/student/dashboard.html';return}
+  const name=user.email.split('@')[0];
+  document.getElementById('user-name').textContent=name;
+  document.getElementById('avatar-initials').textContent=name[0].toUpperCase();
+  document.getElementById('class-tabs').innerHTML=CLASSES.map(c=>`<button class="class-tab" onclick="selectClass('${c}')">${c}</button>`).join('');
+}
+
+async function selectClass(cls){
+  currentClass=cls;
+  document.querySelectorAll('.class-tab').forEach(t=>t.classList.toggle('active',t.textContent===cls));
+  document.getElementById('sync-btn').disabled=false;
+  document.getElementById('search').value='';
+  await loadData();
+}
+
+function selectChapter(ch,btn){
+  currentChapter=ch;
+  document.querySelectorAll('.chapter-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  if(currentClass)renderTable(students);
+}
+
+async function loadData(){
+  setLoading();
+  const{data:classRow}=await db.from('classes').select('id').eq('name',currentClass).single();
+  if(!classRow)return;
+  const{data:rows}=await db.from('students').select('id,full_name').eq('class_id',classRow.id).order('full_name');
+  if(!rows||!rows.length){setEmpty();return}
+  students=rows;
+  const ids=rows.map(r=>r.id);
+
+  const[{data:statuses},{data:subs}]=await Promise.all([
+    db.from('task_status').select('*').in('student_id',ids),
+    db.from('submissions').select('student_id,chapter,task_number').in('student_id',ids)
+  ]);
+
+  statusMap={};
+  (statuses||[]).forEach(s=>{statusMap[s.student_id+'_'+s.chapter+'_'+s.task_number]={id:s.id,is_done:s.is_done}});
+
+  submissionsMap={};
+  (subs||[]).forEach(s=>{submissionsMap[s.student_id+'_'+s.chapter+'_'+s.task_number]=true});
+
+  renderTable(students);
+}
+
+function renderTable(list){
+  if(!list.length){setEmpty();return}
+  const ch=currentChapter;
+  const taskCount=CHAPTERS[ch];
+  const tasks=Array.from({length:taskCount},(_,i)=>i+1);
+
+  document.getElementById('thead').innerHTML=`<tr>
+    <th class="col-no">#</th>
+    <th class="col-name">Student</th>
+    ${tasks.map(t=>`<th>T${t}</th>`).join('')}
+    <th class="col-total">Done</th>
+  </tr>`;
+
+  document.getElementById('tbody').innerHTML=list.map((s,i)=>{
+    const done=tasks.filter(t=>statusMap[s.id+'_'+ch+'_'+t]?.is_done).length;
+    const cells=tasks.map(t=>{
+      const key=s.id+'_'+ch+'_'+t;
+      const isDone=statusMap[key]?.is_done||false;
+      return`<td><button class="task-btn ${isDone?'done':''}" onclick="toggleTask('${s.id}','${ch}',${t},this)" title="${isDone?'Click to unmark':'Click to mark done'}">${isDone?'✓':'—'}</button></td>`;
+    }).join('');
+    return`<tr data-name="${s.full_name.toLowerCase()}">
+      <td class="col-no">${String(i+1).padStart(2,'0')}</td>
+      <td class="col-name" title="${s.full_name}">${s.full_name}</td>
+      ${cells}
+      <td class="col-total" id="total-${s.id}">${done}/${taskCount}</td>
+    </tr>`;
+  }).join('');
+}
+
+function filterStudents(){
+  const q=document.getElementById('search').value.toLowerCase();
+  document.querySelectorAll('#tbody tr').forEach(row=>{
+    row.style.display=row.dataset.name?.includes(q)?'':'none';
+  });
+}
+
+async function toggleTask(sid,ch,task,btn){
+  const key=sid+'_'+ch+'_'+task;
+  const current=statusMap[key]?.is_done||false;
+  const newVal=!current;
+
+  // Update UI immediately
+  btn.classList.toggle('done',newVal);
+  btn.textContent=newVal?'✓':'—';
+  btn.title=newVal?'Click to unmark':'Click to mark done';
+
+  if(!statusMap[key])statusMap[key]={id:null,is_done:false};
+  statusMap[key].is_done=newVal;
+
+  // Update total
+  const taskCount=CHAPTERS[ch];
+  const tasks=Array.from({length:taskCount},(_,i)=>i+1);
+  const done=tasks.filter(t=>statusMap[sid+'_'+ch+'_'+t]?.is_done).length;
+  const totalEl=document.getElementById('total-'+sid);
+  if(totalEl)totalEl.textContent=done+'/'+taskCount;
+
+  pending.add(JSON.stringify({sid,ch,task}));
+  showToast('Saving...','saving');
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(saveAll,600);
+}
+
+async function saveAll(){
+  const items=[...pending].map(j=>JSON.parse(j));
+  pending.clear();
+  for(const{sid,ch,task}of items){
+    const key=sid+'_'+ch+'_'+task;
+    const entry=statusMap[key];
+    if(!entry)continue;
+    const payload={student_id:sid,chapter:ch,task_number:task,is_done:entry.is_done,updated_at:new Date().toISOString()};
+    if(entry.id){
+      await db.from('task_status').update(payload).eq('id',entry.id);
+    }else{
+      const{data}=await db.from('task_status').insert(payload).select('id').single();
+      if(data)statusMap[key].id=data.id;
+    }
+  }
+  showToast('Saved','success');
+  setTimeout(hideToast,2000);
+}
+
+async function syncSubmissions(){
+  if(!currentClass)return;
+  const btn=document.getElementById('sync-btn');
+  btn.disabled=true;
+  btn.textContent='Syncing...';
+  showToast('Syncing submissions...','saving');
+
+  const ch=currentChapter;
+  const taskCount=CHAPTERS[ch];
+  const tasks=Array.from({length:taskCount},(_,i)=>i+1);
+  let synced=0;
+
+  for(const student of students){
+    for(const task of tasks){
+      const subKey=student.id+'_'+ch+'_'+task;
+      const statKey=student.id+'_'+ch+'_'+task;
+      const hasSub=submissionsMap[subKey];
+      if(hasSub&&!statusMap[statKey]?.is_done){
+        // Mark as done
+        const payload={student_id:student.id,chapter:ch,task_number:task,is_done:true,updated_at:new Date().toISOString()};
+        if(statusMap[statKey]?.id){
+          await db.from('task_status').update(payload).eq('id',statusMap[statKey].id);
+        }else{
+          const{data}=await db.from('task_status').insert(payload).select('id').single();
+          if(data)statusMap[statKey]={id:data.id,is_done:true};
+          else statusMap[statKey]={id:null,is_done:true};
+        }
+        synced++;
+      }
+    }
+  }
+
+  await loadData();
+  btn.disabled=false;
+  btn.textContent='⟳ Sync Submissions';
+  showToast(`Synced ${synced} task${synced!==1?'s':''}!`,'success');
+  setTimeout(hideToast,2500);
+}
+
+function setLoading(){
+  document.getElementById('thead').innerHTML='<tr><th colspan="20"></th></tr>';
+  document.getElementById('tbody').innerHTML=`<tr><td colspan="20"><div class="state-msg">Loading...</div></td></tr>`;
+}
+
+function setEmpty(){
+  document.getElementById('tbody').innerHTML=`<tr><td colspan="20"><div class="state-msg">No students found.</div></td></tr>`;
+}
+
+function showToast(msg,type){
+  const el=document.getElementById('toast');
+  document.getElementById('toast-text').textContent=msg;
+  el.className='toast show '+(type||'');
+}
+
+function hideToast(){document.getElementById('toast').className='toast'}
+
+async function handleLogout(){await db.auth.signOut();window.location.href='/index-login.html'}
+init();
+</script>
+</body>
+</html>
