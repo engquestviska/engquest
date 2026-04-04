@@ -176,7 +176,7 @@ async function handleFileSelected(input){
   showToast('Uploading...','loading');
 
   // Build storage path: studentid/chapter/task.pdf
-  const path=`${myStudent.id}/${ch}/task${task}.pdf`;
+  const path = `${myStudent.user_id}/${ch}/task${task}.pdf`
 
   // Upload to Supabase Storage
   const{error:uploadError}=await db.storage.from('submissions').upload(path,file,{upsert:true,contentType:'application/pdf'});
