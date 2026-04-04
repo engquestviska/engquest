@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>English Quest — Task Status</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Fraunces:opsz,wght@9..144,700&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--bg:#0c0c0f;--surface:#131317;--surface2:#1a1a20;--border:#222228;--accent:#7c6ffa;--amber:#e8a030;--text:#dddde8;--muted:#5a5a70;--subtle:#2e2e3a;--success:#34d399;--danger:#f87171}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+    nav{position:sticky;top:0;z-index:50;background:rgba(12,12,15,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:52px}
+    .nav-brand{font-size:.88rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+    .nav-links{display:flex;align-items:center;gap:.25rem}
+    .nav-link{padding:.4rem .75rem;border-radius:6px;font-size:.82rem;color:var(--muted);text-decoration:none;transition:color .12s,background .12s;cursor:pointer;border:none;background:none;font-family:'DM Sans',sans-serif}
+    .nav-link:hover,.nav-link.active{color:var(--text);background:var(--surface2)}
+    .nav-user{display:flex;align-items:center;gap:.6rem;padding:.3rem .75rem .3rem .4rem;border-radius:999px;background:var(--surface);border:1px solid var(--border)}
+    .nav-avatar{width:24px;height:24px;border-radius:50%;background:var(--accent);color:white;font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+    .nav-username{font-size:.8rem;font-weight:500}
+    .btn-logout{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.78rem;padding:.2rem .4rem;border-radius:4px;transition:color .12s;font-family:'DM Sans',sans-serif}
+    .btn-logout:hover{color:var(--danger)}
+    .page{max-width:1000px;margin:0 auto;padding:2.5rem 2rem 4rem;animation:fadeUp .25s ease both}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .page-header{margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+    .page-label{font-size:.72rem;font-weight:500;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:.4rem}
+    .page-title{font-family:'Fraunces',serif;font-size:1.8rem;font-weight:700;letter-spacing:-.02em}
+    .chapter-tabs{display:flex;gap:4px}
+    .chapter-tab{padding:.4rem 1rem;border-radius:6px;font-size:.82rem;font-weight:500;color:var(--muted);background:none;border:1px solid var(--border);cursor:pointer;transition:all .12s;font-family:'DM Sans',sans-serif}
+    .chapter-tab:hover{color:var(--text)}
+    .chapter-tab.active{color:var(--text);background:var(--surface2);border-color:var(--accent)}
+    .my-status{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.25rem 1.5rem;margin-bottom:1.5rem}
+    .my-status-label{font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--accent);margin-bottom:.75rem}
+    .my-tasks-row{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+    .my-task-chip{display:inline-flex;align-items:center;gap:.3rem;padding:.3rem .65rem;border-radius:6px;font-size:.75rem;font-weight:500;border:1px solid var(--border)}
+    .my-task-chip.done{background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.25);color:var(--success)}
+    .my-task-chip.not-done{background:var(--surface2);color:var(--muted)}
+    .my-progress{margin-top:.75rem;display:flex;align-items:center;gap:.75rem}
+    .my-progress-bar-wrap{flex:1;height:4px;background:var(--border);border-radius:999px;overflow:hidden}
+    .my-progress-bar{height:4px;border-radius:999px;background:var(--success);transition:width .8s ease}
+    .my-progress-text{font-size:.78rem;font-weight:600;color:var(--success);flex-shrink:0}
+    .toolbar{display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;flex-wrap:wrap}
+    .search-input{padding:.4rem .85rem;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:.82rem;font-family:'DM Sans',sans-serif;outline:none;width:220px;transition:border-color .12s}
+    .search-input:focus{border-color:var(--accent)}
+    .search-input::placeholder{color:var(--muted)}
+    .summary{font-size:.78rem;color:var(--muted);font-weight:300;margin-left:auto}
+    .table-wrap{border:1px solid var(--border);border-radius:10px;overflow:hidden}
+    table{border-collapse:collapse;width:100%}
+    thead{background:var(--surface)}
+    thead th{font-size:.67rem;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:.75rem .5rem;border-bottom:1px solid var(--border);white-space:nowrap;text-align:center}
+    thead th.col-no{padding-left:1.5rem;text-align:left;width:40px}
+    thead th.col-name{text-align:left;padding-left:0;width:180px}
+    thead th.col-total{color:var(--amber)}
+    tbody tr{border-bottom:1px solid var(--border);transition:background .1s;background:var(--surface)}
+    tbody tr:hover{background:var(--surface2)}
+    tbody tr.is-me{background:rgba(124,111,250,0.05)}
+    tbody td{padding:.55rem .5rem;vertical-align:middle;text-align:center}
+    td.col-no{padding-left:1.5rem;font-size:.72rem;color:var(--muted);text-align:left}
+    td.col-name{font-size:.84rem;text-align:left;padding-left:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+    td.col-name.me{font-weight:600;color:var(--text)}
+    td.col-total{font-size:.82rem;font-weight:600;color:var(--amber)}
+    .task-chip{display:inline-flex;width:28px;height:22px;align-items:center;justify-content:center;border-radius:4px;font-size:.7rem;font-weight:600}
+    .task-chip.done{background:rgba(52,211,153,.12);color:var(--success)}
+    .task-chip.not-done{background:var(--surface2);color:var(--subtle)}
+    .me-badge{font-size:.6rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);background:rgba(124,111,250,.12);padding:.1rem .4rem;border-radius:999px;margin-left:.4rem;vertical-align:middle}
+    .skel{background:linear-gradient(90deg,var(--surface2) 25%,var(--border) 50%,var(--surface2) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:4px}
+    @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    @media(max-width:700px){nav{padding:0 1rem}.page{padding:1.5rem 1rem 3rem}.nav-links{display:none}}
+  </style>
+</head>
+<body>
+<nav>
+  <div class="nav-brand">English Quest</div>
+  <div class="nav-links">
+    <a class="nav-link" href="/student/dashboard.html">Dashboard</a>
+    <a class="nav-link active" href="/student/tasks.html">Tasks</a>
+    <a class="nav-link" href="/student/submissions.html">Submissions</a>
+  </div>
+  <div style="display:flex;align-items:center;gap:.5rem">
+    <div class="nav-user">
+      <div class="nav-avatar" id="nav-avatar">?</div>
+      <div class="nav-username" id="nav-username">—</div>
+    </div>
+    <button class="btn-logout" onclick="handleLogout()">Sign out</button>
+  </div>
+</nav>
+<div class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-label">Class Task Status</div>
+      <div class="page-title">Task Progress</div>
+    </div>
+    <div class="chapter-tabs">
+      <button class="chapter-tab active" onclick="switchChapter('C4',this)">Chapter 4</button>
+      <button class="chapter-tab" onclick="switchChapter('C5',this)">Chapter 5</button>
+    </div>
+  </div>
+
+  <!-- My status -->
+  <div class="my-status" id="my-status">
+    <div class="my-status-label">My Progress</div>
+    <div class="my-tasks-row" id="my-tasks-row">
+      <div class="skel" style="height:28px;width:300px"></div>
+    </div>
+    <div class="my-progress">
+      <div class="my-progress-bar-wrap"><div class="my-progress-bar" id="my-progress-bar" style="width:0%"></div></div>
+      <div class="my-progress-text" id="my-progress-text">—</div>
+    </div>
+  </div>
+
+  <!-- Class table -->
+  <div class="toolbar">
+    <input class="search-input" type="text" id="search" placeholder="Search classmate..." oninput="filterTable()">
+    <div class="summary" id="summary"></div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead id="thead"><tr><th colspan="12"><div style="padding:2rem;color:var(--muted);font-size:.84rem;font-weight:300">Loading...</div></th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+<script>
+const SUPABASE_URL='https://unbvljjgiqyphtykbkdb.supabase.co';
+const SUPABASE_KEY='sb_publishable_DFTQJ5niT0OiWVwpeNwM1A_W18mJ1oT';
+const{createClient}=supabase;
+const db=createClient(SUPABASE_URL,SUPABASE_KEY);
+const CHAPTERS={C4:7,C5:5};
+let myStudent=null,currentChapter='C4',students=[],statusMap={};
+
+async function init(){
+  const{data:{user}}=await db.auth.getUser();
+  if(!user){window.location.href='/index-login.html';return}
+  if(user.user_metadata?.role==='teacher'){window.location.href='/teacher/dashboard.html';return}
+  const{data:student}=await db.from('students').select('*,classes(name)').eq('user_id',user.id).single();
+  if(!student)return;
+  myStudent=student;
+  const firstName=student.full_name.split(' ')[0];
+  document.getElementById('nav-avatar').textContent=firstName[0].toUpperCase();
+  document.getElementById('nav-username').textContent=firstName;
+  await loadData();
+}
+
+async function loadData(){
+  const{data:classStudents}=await db.from('students').select('id,full_name').eq('class_id',myStudent.class_id).order('full_name');
+  if(!classStudents)return;
+  students=classStudents;
+  const ids=classStudents.map(s=>s.id);
+  const{data:statuses}=await db.from('task_status').select('*').in('student_id',ids);
+  statusMap={};
+  (statuses||[]).forEach(s=>{statusMap[s.student_id+'_'+s.chapter+'_'+s.task_number]=s.is_done});
+  renderMyStatus();
+  renderTable();
+}
+
+function switchChapter(ch,btn){
+  currentChapter=ch;
+  document.querySelectorAll('.chapter-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  renderMyStatus();
+  renderTable();
+}
+
+function renderMyStatus(){
+  const ch=currentChapter;
+  const taskCount=CHAPTERS[ch];
+  const tasks=Array.from({length:taskCount},(_,i)=>i+1);
+  const done=tasks.filter(t=>statusMap[myStudent.id+'_'+ch+'_'+t]).length;
+  const pct=Math.round((done/taskCount)*100);
+
+  document.getElementById('my-tasks-row').innerHTML=tasks.map(t=>{
+    const isDone=statusMap[myStudent.id+'_'+ch+'_'+t];
+    return`<span class="my-task-chip ${isDone?'done':'not-done'}">${isDone?'✓':''} T${t}</span>`;
+  }).join('');
+
+  document.getElementById('my-progress-bar').style.width=pct+'%';
+  document.getElementById('my-progress-text').textContent=done+'/'+taskCount+' done';
+}
+
+function renderTable(){
+  const ch=currentChapter;
+  const taskCount=CHAPTERS[ch];
+  const tasks=Array.from({length:taskCount},(_,i)=>i+1);
+
+  // Count class completion
+  const classTotal=students.filter(s=>tasks.every(t=>statusMap[s.id+'_'+ch+'_'+t])).length;
+  document.getElementById('summary').textContent=`${classTotal} / ${students.length} completed all tasks`;
+
+  document.getElementById('thead').innerHTML=`<tr>
+    <th class="col-no">#</th>
+    <th class="col-name">Student</th>
+    ${tasks.map(t=>`<th>T${t}</th>`).join('')}
+    <th class="col-total">Done</th>
+  </tr>`;
+
+  document.getElementById('tbody').innerHTML=students.map((s,i)=>{
+    const isMe=s.id===myStudent.id;
+    const done=tasks.filter(t=>statusMap[s.id+'_'+ch+'_'+t]).length;
+    const cells=tasks.map(t=>{
+      const isDone=statusMap[s.id+'_'+ch+'_'+t];
+      return`<td><span class="task-chip ${isDone?'done':'not-done'}">${isDone?'✓':'—'}</span></td>`;
+    }).join('');
+    return`<tr class="${isMe?'is-me':''}" data-name="${s.full_name.toLowerCase()}">
+      <td class="col-no">${String(i+1).padStart(2,'0')}</td>
+      <td class="col-name ${isMe?'me':''}">${s.full_name}${isMe?'<span class="me-badge">You</span>':''}</td>
+      ${cells}
+      <td class="col-total">${done}/${taskCount}</td>
+    </tr>`;
+  }).join('');
+}
+
+function filterTable(){
+  const q=document.getElementById('search').value.toLowerCase();
+  document.querySelectorAll('#tbody tr').forEach(row=>{
+    row.style.display=row.dataset.name?.includes(q)?'':'none';
+  });
+}
+
+async function handleLogout(){await db.auth.signOut();window.location.href='/index-login.html'}
+init();
+</script>
+</body>
+</html>
