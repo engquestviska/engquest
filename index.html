@@ -1,155 +1,1046 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>English Quest — Login</title>
+  <title>English Quest · SMA Negeri 6 Surakarta</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,700;0,9..144,900;1,9..144,300;1,9..144,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:       #09090d;
+      --surface:  #111116;
+      --surface2: #18181f;
+      --border:   #22222e;
+      --indigo:   #6d65f5;
+      --indigo2:  #4f46e5;
+      --amber:    #e9a23b;
+      --text:     #e4e4f0;
+      --muted:    #55556a;
+      --subtle:   #2a2a38;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
 
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #0f172a;
-      color: #e2e8f0;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── NOISE TEXTURE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.5;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 1.1rem 2.5rem;
       display: flex;
-      justify-content: center;
       align-items: center;
-      height: 100vh;
+      justify-content: space-between;
+      border-bottom: 1px solid transparent;
+      transition: background 0.3s, border-color 0.3s;
     }
 
-    .card {
-      background: #1e293b;
-      padding: 2.5rem;
-      border-radius: 16px;
-      width: 100%;
-      max-width: 400px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    nav.scrolled {
+      background: rgba(9,9,13,0.85);
+      backdrop-filter: blur(12px);
+      border-color: var(--border);
     }
 
-    h1 {
-      font-size: 1.8rem;
-      margin-bottom: 0.3rem;
-      color: #38bdf8;
-    }
-
-    p.subtitle {
-      font-size: 0.9rem;
-      color: #94a3b8;
-      margin-bottom: 2rem;
-    }
-
-    label {
-      display: block;
-      font-size: 0.85rem;
-      color: #94a3b8;
-      margin-bottom: 0.4rem;
-    }
-
-    input {
-      width: 100%;
-      padding: 0.75rem 1rem;
-      border-radius: 8px;
-      border: 1px solid #334155;
-      background: #0f172a;
-      color: #e2e8f0;
-      font-size: 1rem;
-      margin-bottom: 1.2rem;
-      outline: none;
-      transition: border 0.2s;
-    }
-
-    input:focus {
-      border-color: #38bdf8;
-    }
-
-    button {
-      width: 100%;
-      padding: 0.85rem;
-      background: #38bdf8;
-      color: #0f172a;
+    .nav-brand {
+      font-family: 'Fraunces', serif;
       font-size: 1rem;
       font-weight: 700;
-      border: none;
-      border-radius: 8px;
+      letter-spacing: 0.02em;
+      color: var(--text);
+    }
+
+    .nav-brand em {
+      color: var(--amber);
+      font-style: normal;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .nav-btn {
+      padding: 0.45rem 1rem;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 500;
       cursor: pointer;
-      transition: background 0.2s;
+      border: none;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.15s;
+      text-decoration: none;
     }
 
-    button:hover {
-      background: #7dd3fc;
+    .nav-btn.ghost {
+      background: none;
+      color: var(--muted);
     }
 
-    .error {
-      color: #f87171;
-      font-size: 0.85rem;
-      margin-bottom: 1rem;
-      display: none;
+    .nav-btn.ghost:hover { color: var(--text); }
+
+    .nav-btn.primary {
+      background: var(--indigo);
+      color: #fff;
     }
 
-    .footer {
+    .nav-btn.primary:hover { background: var(--indigo2); }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       text-align: center;
-      margin-top: 1.5rem;
+      padding: 8rem 2rem 6rem;
+      overflow: hidden;
+    }
+
+    /* Ambient glow blobs */
+    .hero-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+    }
+
+    .blob-1 {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(109,101,245,0.18) 0%, transparent 70%);
+      top: -100px; left: -100px;
+      animation: blobFloat1 8s ease-in-out infinite;
+    }
+
+    .blob-2 {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(233,162,59,0.12) 0%, transparent 70%);
+      bottom: 0; right: -80px;
+      animation: blobFloat2 10s ease-in-out infinite;
+    }
+
+    .blob-3 {
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(109,101,245,0.1) 0%, transparent 70%);
+      top: 40%; left: 50%;
+      transform: translate(-50%, -50%);
+      animation: blobFloat3 12s ease-in-out infinite;
+    }
+
+    @keyframes blobFloat1 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(40px, 30px) scale(1.1); }
+    }
+    @keyframes blobFloat2 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(-30px, -40px) scale(0.95); }
+    }
+    @keyframes blobFloat3 {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); }
+      50% { transform: translate(-50%, -50%) scale(1.2); }
+    }
+
+    /* Dot grid */
+    .hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 700px;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.72rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--amber);
+      margin-bottom: 1.5rem;
+      padding: 0.35rem 0.9rem;
+      border: 1px solid rgba(233,162,59,0.25);
+      border-radius: 999px;
+      background: rgba(233,162,59,0.06);
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .hero-title {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(3rem, 8vw, 5.5rem);
+      font-weight: 900;
+      line-height: 1.0;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      margin-bottom: 1.5rem;
+      animation: fadeUp 0.6s 0.1s ease both;
+    }
+
+    .hero-title em {
+      font-style: italic;
+      color: var(--indigo);
+    }
+
+    .hero-sub {
+      font-size: 1rem;
+      font-weight: 300;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 2.5rem;
+      animation: fadeUp 0.6s 0.2s ease both;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      animation: fadeUp 0.6s 0.3s ease both;
+    }
+
+    .btn-hero {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.85rem 1.75rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      font-family: 'DM Sans', sans-serif;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .btn-hero.primary {
+      background: var(--indigo);
+      color: #fff;
+      box-shadow: 0 0 0 0 rgba(109,101,245,0.4);
+    }
+
+    .btn-hero.primary:hover {
+      background: var(--indigo2);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(109,101,245,0.3);
+    }
+
+    .btn-hero.outline {
+      background: none;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .btn-hero.outline:hover {
+      color: var(--text);
+      border-color: var(--subtle);
+    }
+
+    /* Scroll indicator */
+    .scroll-hint {
+      position: absolute;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      animation: fadeUp 0.6s 0.5s ease both;
+      z-index: 2;
+    }
+
+    .scroll-line {
+      width: 1px;
+      height: 40px;
+      background: linear-gradient(to bottom, var(--muted), transparent);
+      animation: scrollPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes scrollPulse {
+      0%, 100% { opacity: 0.3; transform: scaleY(1); }
+      50% { opacity: 1; transform: scaleY(0.7); }
+    }
+
+    /* ── STATS BAR ── */
+    .stats-bar {
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      overflow: hidden;
+    }
+
+    .stat-item {
+      padding: 1.75rem 2rem;
+      border-right: 1px solid var(--border);
+      text-align: center;
+      transition: background 0.15s;
+    }
+
+    .stat-item:last-child { border-right: none; }
+    .stat-item:hover { background: var(--surface2); }
+
+    .stat-num {
+      font-family: 'Fraunces', serif;
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+      margin-bottom: 0.3rem;
+    }
+
+    .stat-lbl {
+      font-size: 0.72rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+
+    /* ── SECTIONS ── */
+    .section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 5rem 2.5rem;
+    }
+
+    .section-eyebrow {
+      font-size: 0.68rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--indigo);
+      margin-bottom: 0.6rem;
+    }
+
+    .section-title {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(1.5rem, 3vw, 2.2rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      margin-bottom: 2.5rem;
+      line-height: 1.2;
+    }
+
+    /* ── HALL OF FAME ── */
+    .hof-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .hof-leaderboard {
+      background: var(--surface);
+    }
+
+    .hof-panel-header {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+
+    .hof-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.85rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.12s;
+      cursor: pointer;
+    }
+
+    .hof-row:last-child { border-bottom: none; }
+    .hof-row:hover { background: var(--surface2); }
+
+    .hof-rank {
+      font-family: 'Fraunces', serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      width: 28px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .rank-1 { color: #f59e0b; }
+    .rank-2 { color: #9ca3af; }
+    .rank-3 { color: #b45309; }
+    .rank-n { color: var(--muted); font-size: 0.85rem; }
+
+    .hof-avatar {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Fraunces', serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .hof-info { flex: 1; min-width: 0; }
+
+    .hof-name {
+      font-size: 0.88rem;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .hof-class {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-top: 0.1rem;
+    }
+
+    .hof-pts {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--indigo);
+      flex-shrink: 0;
+    }
+
+    .hof-bar-wrap {
+      width: 60px;
+      height: 3px;
+      background: var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .hof-bar {
+      height: 3px;
+      border-radius: 999px;
+      background: var(--indigo);
+      transition: width 1s ease;
+    }
+
+    /* Category champions */
+    .hof-champs {
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .champ-card {
+      padding: 0.9rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      transition: background 0.12s;
+    }
+
+    .champ-card:last-child { border-bottom: none; }
+    .champ-card:hover { background: var(--surface2); }
+
+    .champ-icon { font-size: 1.1rem; flex-shrink: 0; }
+
+    .champ-info { flex: 1; min-width: 0; }
+
+    .champ-cat {
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 0.15rem;
+    }
+
+    .champ-name {
+      font-size: 0.84rem;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .champ-val {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--amber);
+      flex-shrink: 0;
+    }
+
+    /* ── RESOURCES ── */
+    .resource-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .resource-card {
+      background: var(--surface);
+      padding: 1.5rem;
+      text-decoration: none;
+      color: var(--text);
+      transition: background 0.12s;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      cursor: pointer;
+      border: none;
+      text-align: left;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .resource-card:hover { background: var(--surface2); }
+
+    .resource-icon {
+      font-size: 1.4rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .resource-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .resource-desc {
+      font-size: 0.78rem;
+      color: var(--muted);
+      font-weight: 300;
+      line-height: 1.5;
+    }
+
+    .resource-arrow {
       font-size: 0.8rem;
-      color: #475569;
+      color: var(--border);
+      margin-top: auto;
+      transition: color 0.12s, transform 0.12s;
+    }
+
+    .resource-card:hover .resource-arrow {
+      color: var(--indigo);
+      transform: translateX(3px);
+    }
+
+    /* ── ANNOUNCEMENT BANNER ── */
+    .ann-strip {
+      display: none;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 2.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .ann-strip.show { display: block; }
+
+    .ann-strip-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .ann-type-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .ann-strip .ann-title {
+      font-size: 0.84rem;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .ann-strip .ann-body {
+      font-size: 0.82rem;
+      color: var(--muted);
+      flex: 1;
+    }
+
+    .ann-dismiss {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 0.1rem 0.3rem;
+      flex-shrink: 0;
+      transition: color 0.12s;
+    }
+
+    .ann-dismiss:hover { color: var(--text); }
+
+    /* ── SUMMATIVE BANNER ── */
+    .summ-strip {
+      display: none;
+      border-bottom: 1px solid rgba(109,101,245,0.2);
+      background: rgba(109,101,245,0.06);
+      padding: 0.7rem 2.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .summ-strip.show { display: block; }
+
+    .summ-strip-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .summ-pulse {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--indigo);
+      flex-shrink: 0;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(109,101,245,0.6); }
+      50% { box-shadow: 0 0 0 6px rgba(109,101,245,0); }
+    }
+
+    .summ-label {
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--indigo);
+      flex-shrink: 0;
+    }
+
+    .summ-text {
+      font-size: 0.82rem;
+      color: var(--muted);
+      flex: 1;
+    }
+
+    .summ-text strong { color: var(--text); }
+
+    .summ-countdown {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      flex-shrink: 0;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 2.5rem;
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--muted);
+      font-weight: 300;
+    }
+
+    footer strong { color: var(--text); font-weight: 500; }
+
+    /* ── LOADING STATE ── */
+    .skel {
+      background: linear-gradient(90deg, var(--surface2) 25%, var(--border) 50%, var(--surface2) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 4px;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .hof-grid { grid-template-columns: 1fr; }
+      .resource-grid { grid-template-columns: repeat(2, 1fr); }
+      .stats-bar { grid-template-columns: repeat(2, 1fr); }
+      .stat-item:nth-child(2) { border-right: none; }
+      nav { padding: 1rem 1.5rem; }
+      .section { padding: 3.5rem 1.5rem; }
+    }
+
+    @media (max-width: 600px) {
+      .resource-grid { grid-template-columns: 1fr; }
+      .hero-title { font-size: 2.6rem; }
+      .nav-links .nav-btn.ghost { display: none; }
     }
   </style>
 </head>
 <body>
 
-  <div class="card">
-    <h1>English Quest</h1>
-    <p class="subtitle">SMA Negeri 6 Surakarta — Please log in to continue</p>
+<!-- Nav -->
+<nav id="navbar">
+  <div class="nav-brand">English <em>Quest</em></div>
+  <div class="nav-links">
+    <button class="nav-btn ghost" onclick="scrollTo({top: document.getElementById('hof').offsetTop - 80, behavior:'smooth'})">Hall of Fame</button>
+    <button class="nav-btn ghost" onclick="scrollTo({top: document.getElementById('resources').offsetTop - 80, behavior:'smooth'})">Resources</button>
+    <a class="nav-btn primary" href="/index-login.html">Log In</a>
+  </div>
+</nav>
 
-    <label for="email">Email</label>
-    <input type="email" id="email" placeholder="you@example.com" />
+<!-- Announcement strip -->
+<div class="ann-strip" id="annStrip">
+  <div class="ann-strip-inner">
+    <div class="ann-type-dot" id="annDot"></div>
+    <div class="ann-title" id="annTitle"></div>
+    <div class="ann-body" id="annBody"></div>
+    <button class="ann-dismiss" onclick="dismissAnn()">✕</button>
+  </div>
+</div>
 
-    <label for="password">Password</label>
-    <input type="password" id="password" placeholder="••••••••" />
+<!-- Summative strip -->
+<div class="summ-strip" id="summStrip">
+  <div class="summ-strip-inner">
+    <div class="summ-pulse"></div>
+    <div class="summ-label">Summative</div>
+    <div class="summ-text" id="summText">Loading...</div>
+    <div class="summ-countdown" id="summCountdown"></div>
+  </div>
+</div>
 
-    <p class="error" id="error-msg">Invalid email or password.</p>
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-blob blob-1"></div>
+  <div class="hero-blob blob-2"></div>
+  <div class="hero-blob blob-3"></div>
 
-    <button onclick="handleLogin()">Log In</button>
-
-    <div class="footer">English Quest © 2025</div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">
+      <span>●</span> SMA Negeri 6 Surakarta
+    </div>
+    <h1 class="hero-title">
+      English<br><em>Quest</em>
+    </h1>
+    <p class="hero-sub">
+      Your learning portal for English class.<br>
+      Track scores, submit tasks, and stay on top of your progress.
+    </p>
+    <div class="hero-actions">
+      <a class="btn-hero primary" href="/index-login.html">
+        Log In to Your Account
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+      <button class="btn-hero outline" onclick="scrollTo({top: document.getElementById('hof').offsetTop - 80, behavior:'smooth'})">
+        See Hall of Fame
+      </button>
+    </div>
   </div>
 
-  <script>
-    // Initialize Supabase
-    const { createClient } = supabase;
-    const client = createClient(
-      'https://unbvljjgiqyphtykbkdb.supabase.co',
-      'sb_publishable_DFTQJ5niT0OiWVwpeNwM1A_W18mJ1oT'
-    );
+  <div class="scroll-hint">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
 
-    async function handleLogin() {
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      const errorMsg = document.getElementById('error-msg');
+<!-- Stats bar -->
+<div class="stats-bar">
+  <div class="stat-item">
+    <div class="stat-num" id="stat-students">—</div>
+    <div class="stat-lbl">Students</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">9</div>
+    <div class="stat-lbl">Classes</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num" id="stat-submissions">—</div>
+    <div class="stat-lbl">Submissions</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num" id="stat-active">—</div>
+    <div class="stat-lbl">Active Students</div>
+  </div>
+</div>
 
-      errorMsg.style.display = 'none';
+<!-- Hall of Fame -->
+<section id="hof" class="section">
+  <div class="reveal">
+    <div class="section-eyebrow">Leaderboard</div>
+    <div class="section-title">Hall of Fame</div>
+    <div class="hof-grid">
+      <div class="hof-leaderboard">
+        <div class="hof-panel-header">Top 5 Most Active · All Classes</div>
+        <div id="hof-list">
+          <div class="hof-row"><div class="skel" style="width:100%;height:20px;"></div></div>
+          <div class="hof-row"><div class="skel" style="width:100%;height:20px;"></div></div>
+          <div class="hof-row"><div class="skel" style="width:100%;height:20px;"></div></div>
+          <div class="hof-row"><div class="skel" style="width:100%;height:20px;"></div></div>
+          <div class="hof-row"><div class="skel" style="width:100%;height:20px;"></div></div>
+        </div>
+      </div>
+      <div class="hof-champs">
+        <div class="hof-panel-header">Category Champions</div>
+        <div id="champ-list">
+          <div class="champ-card"><div class="skel" style="width:100%;height:18px;"></div></div>
+          <div class="champ-card"><div class="skel" style="width:100%;height:18px;"></div></div>
+          <div class="champ-card"><div class="skel" style="width:100%;height:18px;"></div></div>
+          <div class="champ-card"><div class="skel" style="width:100%;height:18px;"></div></div>
+          <div class="champ-card"><div class="skel" style="width:100%;height:18px;"></div></div>
+          <div class="champ-card"><div class="skel" style="width:100%;height:18px;"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-      const { data, error } = await client.auth.signInWithPassword({
-        email,
-        password
-      });
+<!-- Resources -->
+<section id="resources" class="section" style="padding-top:0;">
+  <div class="reveal">
+    <div class="section-eyebrow">Quick Access</div>
+    <div class="section-title">Class Resources</div>
+    <div class="resource-grid">
+      <a class="resource-card" href="/student/dashboard.html">
+        <div class="resource-icon">📊</div>
+        <div class="resource-name">My Scores</div>
+        <div class="resource-desc">View your chapter scores, task grades, and final marks</div>
+        <div class="resource-arrow">→</div>
+      </a>
+      <a class="resource-card" href="/student/submissions.html">
+        <div class="resource-icon">📁</div>
+        <div class="resource-name">Submit Task</div>
+        <div class="resource-desc">Upload your task files for teacher review</div>
+        <div class="resource-arrow">→</div>
+      </a>
+      <a class="resource-card" href="/student/activeness.html">
+        <div class="resource-icon">⚡</div>
+        <div class="resource-name">My Activeness</div>
+        <div class="resource-desc">Track your activeness points and ranking in class</div>
+        <div class="resource-arrow">→</div>
+      </a>
+      <a class="resource-card" href="/materials.html">
+        <div class="resource-icon">📚</div>
+        <div class="resource-name">Materials</div>
+        <div class="resource-desc">Download lesson slides and reading materials</div>
+        <div class="resource-arrow">→</div>
+      </a>
+      <a class="resource-card" href="/student/attendance.html">
+        <div class="resource-icon">✅</div>
+        <div class="resource-name">Attendance</div>
+        <div class="resource-desc">Check your attendance record</div>
+        <div class="resource-arrow">→</div>
+      </a>
+      <a class="resource-card" href="/gallery.html">
+        <div class="resource-icon">🖼️</div>
+        <div class="resource-name">Gallery</div>
+        <div class="resource-desc">Class moments and memories</div>
+        <div class="resource-arrow">→</div>
+      </a>
+    </div>
+  </div>
+</section>
 
-      if (error) {
-        errorMsg.style.display = 'block';
-        errorMsg.textContent = error.message;
-        return;
-      }
+<footer>
+  © 2026 <strong>English Quest</strong> · SMA Negeri 6 Surakarta · Built by <strong>LaksMedia</strong>
+</footer>
 
-      // Get user role from metadata
-      const role = data.user.user_metadata?.role;
+<script>
+  const SUPABASE_URL = 'https://unbvljjgiqyphtykbkdb.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_DFTQJ5niT0OiWVwpeNwM1A_W18mJ1oT';
+  const { createClient } = supabase;
+  const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-      if (role === 'teacher') {
-        window.location.href = '/teacher/dashboard.html';
-      } else {
-        window.location.href = '/student/dashboard.html';
-      }
+  const AVATAR_COLORS = ['#6d65f5','#0891b2','#059669','#d97706','#dc2626','#7c3aed','#0284c7','#9333ea','#16a34a'];
+  const CLASSES = ['XE1','XE4','XE5','XE6','XE7','XE8','XE9','XE10','XE11'];
+  const CATS = [
+    { key:'vocabulary_box', label:'Vocab Box',    icon:'📚', pts:1 },
+    { key:'answering',      label:'Answering',    icon:'🙋', pts:2 },
+    { key:'presenting',     label:'Presenting',   icon:'🎤', pts:5 },
+    { key:'task_on_time',   label:'Task On Time', icon:'✅', pts:2 },
+    { key:'helping_hand',   label:'Helping Hand', icon:'🤝', pts:1 },
+    { key:'quiz',           label:'Quiz',         icon:'🎯', pts:1 },
+  ];
+
+  // Nav scroll effect
+  window.addEventListener('scroll', () => {
+    document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 40);
+  });
+
+  // Scroll reveal
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // Load stats
+  async function loadStats() {
+    const [students, subs, acts] = await Promise.all([
+      db.from('students').select('id', { count:'exact', head:true }),
+      db.from('submissions').select('id', { count:'exact', head:true }),
+      db.from('activeness').select('id', { count:'exact', head:true }),
+    ]);
+    animateCount('stat-students',    students.count ?? 0);
+    animateCount('stat-submissions', subs.count ?? 0);
+    animateCount('stat-active',      acts.count ?? 0);
+  }
+
+  function animateCount(id, target) {
+    const el = document.getElementById(id);
+    let start = 0;
+    const step = Math.ceil(target / 40);
+    const timer = setInterval(() => {
+      start = Math.min(start + step, target);
+      el.textContent = start;
+      if (start >= target) clearInterval(timer);
+    }, 30);
+  }
+
+  // Load Hall of Fame
+  async function loadHoF() {
+    const { data: acts } = await db
+      .from('activeness')
+      .select('*, students(full_name, class_id, classes(name))');
+
+    if (!acts || acts.length === 0) {
+      document.getElementById('hof-list').innerHTML = '<div class="hof-row" style="color:var(--muted);font-size:0.84rem;">No data yet.</div>';
+      document.getElementById('champ-list').innerHTML = '';
+      return;
     }
-  </script>
 
+    // Calculate total points per student
+    const scored = acts.map(a => {
+      const total = (a.vocabulary_box||0)*1 + (a.answering||0)*2 + (a.presenting||0)*5 +
+                    (a.task_on_time||0)*2 + (a.helping_hand||0)*1 + (a.quiz||0)*1;
+      return { ...a, total };
+    }).sort((a,b) => b.total - a.total);
+
+    const maxPts = scored[0]?.total || 1;
+    const top5   = scored.slice(0, 5);
+    const rankIcons = ['🥇','🥈','🥉','4','5'];
+    const rankClasses = ['rank-1','rank-2','rank-3','rank-n','rank-n'];
+
+    document.getElementById('hof-list').innerHTML = top5.map((s, i) => {
+      const name    = s.students?.full_name || '—';
+      const cls     = s.students?.classes?.name || '—';
+      const clsIdx  = CLASSES.indexOf(cls);
+      const color   = AVATAR_COLORS[clsIdx] || '#6d65f5';
+      const initial = name[0].toUpperCase();
+      const pct     = Math.round((s.total / maxPts) * 100);
+      return `<div class="hof-row">
+        <div class="hof-rank ${rankClasses[i]}">${rankIcons[i]}</div>
+        <div class="hof-avatar" style="background:${color}">${initial}</div>
+        <div class="hof-info">
+          <div class="hof-name">${name}</div>
+          <div class="hof-class">${cls}</div>
+        </div>
+        <div class="hof-bar-wrap"><div class="hof-bar" style="width:${pct}%"></div></div>
+        <div class="hof-pts">${s.total} pts</div>
+      </div>`;
+    }).join('');
+
+    // Category champions
+    document.getElementById('champ-list').innerHTML = CATS.map(cat => {
+      const best = [...acts].sort((a,b) => (b[cat.key]||0) - (a[cat.key]||0))[0];
+      if (!best) return '';
+      const name = best.students?.full_name?.split(' ')[0] || '—';
+      const cls  = best.students?.classes?.name || '—';
+      const val  = best[cat.key] || 0;
+      return `<div class="champ-card">
+        <div class="champ-icon">${cat.icon}</div>
+        <div class="champ-info">
+          <div class="champ-cat">${cat.label}</div>
+          <div class="champ-name">${name} · ${cls}</div>
+        </div>
+        <div class="champ-val">${val}×</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Announcement (placeholder — will be wired to Supabase later)
+  async function loadAnnouncement() {
+    // Will be replaced with Supabase query once announcement table is created
+  }
+
+  function dismissAnn() {
+    document.getElementById('annStrip').classList.remove('show');
+  }
+
+  // Summative (placeholder — will be wired to Supabase later)
+  async function loadSummative() {
+    // Will be replaced with Supabase query once summative table is created
+  }
+
+  // Init
+  loadStats();
+  loadHoF();
+  loadAnnouncement();
+  loadSummative();
+</script>
 </body>
 </html>
