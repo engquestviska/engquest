@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>English Quest — My Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&family=Fraunces:opsz,wght@9..144,700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:#0c0c0f;--surface:#131317;--surface2:#1a1a20;--border:#222228;
+      --accent:#7c6ffa;--amber:#e8a030;--text:#dddde8;--muted:#5a5a70;
+      --subtle:#2e2e3a;--success:#34d399;--danger:#f87171;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+    nav{position:sticky;top:0;z-index:50;background:rgba(12,12,15,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:52px}
+    .nav-brand{font-size:.88rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+    .nav-links{display:flex;align-items:center;gap:.25rem}
+    .nav-link{padding:.4rem .75rem;border-radius:6px;font-size:.82rem;color:var(--muted);text-decoration:none;transition:color .12s,background .12s;cursor:pointer;border:none;background:none;font-family:'DM Sans',sans-serif}
+    .nav-link:hover,.nav-link.active{color:var(--text);background:var(--surface2)}
+    .nav-user{display:flex;align-items:center;gap:.6rem;padding:.3rem .75rem .3rem .4rem;border-radius:999px;background:var(--surface);border:1px solid var(--border)}
+    .nav-avatar{width:24px;height:24px;border-radius:50%;background:var(--accent);color:white;font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+    .nav-username{font-size:.8rem;font-weight:500}
+    .btn-logout{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.78rem;padding:.2rem .4rem;border-radius:4px;transition:color .12s;font-family:'DM Sans',sans-serif}
+    .btn-logout:hover{color:var(--danger)}
+    .page{max-width:1000px;margin:0 auto;padding:2.5rem 2rem 4rem;animation:fadeUp .25s ease both}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .greeting-block{margin-bottom:2.5rem;padding-bottom:2rem;border-bottom:1px solid var(--border)}
+    .greeting-label{font-size:.72rem;font-weight:500;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:.4rem}
+    .greeting-name{font-family:'Fraunces',serif;font-size:2rem;font-weight:700;letter-spacing:-.02em;margin-bottom:.3rem}
+    .greeting-meta{font-size:.82rem;color:var(--muted);font-weight:300}
+    .quick-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:2rem}
+    .qs{background:var(--surface);padding:1.25rem 1.5rem;transition:background .12s}
+    .qs:hover{background:var(--surface2)}
+    .qs-label{font-size:.68rem;font-weight:500;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:.5rem}
+    .qs-value{font-family:'Fraunces',serif;font-size:1.8rem;font-weight:700;line-height:1;margin-bottom:.2rem}
+    .qs-sub{font-size:.7rem;color:var(--muted);font-weight:300}
+    .section-label{font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:.85rem}
+    .act-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:2rem}
+    .act-card{background:var(--surface);padding:1rem 1.25rem;transition:background .12s}
+    .act-card:hover{background:var(--surface2)}
+    .act-cat{font-size:.68rem;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.4rem}
+    .act-val{font-family:'Fraunces',serif;font-size:1.6rem;font-weight:700;line-height:1;margin-bottom:.2rem}
+    .act-pts{font-size:.7rem;color:var(--muted);font-weight:300}
+    .scores-wrap{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:2rem}
+    .scores-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--surface)}
+    .score-tab{padding:.65rem 1.25rem;font-size:.8rem;font-weight:500;color:var(--muted);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .12s,border-color .12s;font-family:'DM Sans',sans-serif}
+    .score-tab:hover{color:var(--text)}
+    .score-tab.active{color:var(--text);border-bottom-color:var(--accent)}
+    .scores-body{background:var(--surface)}
+    .score-row{display:flex;align-items:center;padding:.7rem 1.25rem;border-bottom:1px solid var(--border);gap:1rem}
+    .score-row:last-child{border-bottom:none}
+    .score-task{font-size:.72rem;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);width:60px;flex-shrink:0}
+    .score-bar-wrap{flex:1;height:4px;background:var(--border);border-radius:999px;overflow:hidden}
+    .score-bar{height:4px;border-radius:999px;transition:width .8s ease}
+    .score-val{font-size:.88rem;font-weight:600;width:40px;text-align:right;flex-shrink:0}
+    .score-empty{padding:1.5rem 1.25rem;font-size:.82rem;color:var(--muted);font-weight:300}
+    .classmates-wrap{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:2rem}
+    .classmates-header{padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:space-between}
+    .classmates-title{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+    .classmates-search{padding:.3rem .7rem;background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:.78rem;font-family:'DM Sans',sans-serif;outline:none;width:180px;transition:border-color .12s}
+    .classmates-search:focus{border-color:var(--accent)}
+    .classmates-search::placeholder{color:var(--muted)}
+    .classmate-row{display:flex;align-items:center;gap:.75rem;padding:.65rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface);transition:background .12s}
+    .classmate-row:last-child{border-bottom:none}
+    .classmate-row:hover{background:var(--surface2)}
+    .classmate-row.is-me{background:rgba(124,111,250,0.06)}
+    .classmate-no{font-size:.7rem;color:var(--muted);width:24px;flex-shrink:0;font-weight:300}
+    .classmate-avatar{width:28px;height:28px;border-radius:50%;background:var(--subtle);color:var(--accent);font-size:.72rem;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .classmate-avatar.me{background:var(--accent);color:white}
+    .classmate-name{flex:1;font-size:.84rem;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .classmate-name.me{font-weight:600}
+    .classmate-pts{font-size:.78rem;color:var(--muted);flex-shrink:0}
+    .me-badge{font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);background:rgba(124,111,250,0.12);padding:.15rem .5rem;border-radius:999px;flex-shrink:0}
+    .strikes-wrap{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:2rem}
+    .strikes-header{padding:.85rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface);font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+    .strikes-body{background:var(--surface);padding:1.25rem;display:flex;align-items:center;gap:1rem}
+    .strike-dots{display:flex;gap:.5rem}
+    .strike-dot{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.9rem}
+    .strike-dot.active{background:rgba(248,113,113,0.1);border-color:var(--danger)}
+    .strikes-info{flex:1}
+    .strikes-count{font-size:.88rem;font-weight:500;margin-bottom:.2rem}
+    .strikes-note{font-size:.76rem;color:var(--muted);font-weight:300}
+    .skel{background:linear-gradient(90deg,var(--surface2) 25%,var(--border) 50%,var(--surface2) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:4px}
+    @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    @media(max-width:700px){.quick-stats{grid-template-columns:repeat(2,1fr)}.act-grid{grid-template-columns:repeat(2,1fr)}nav{padding:0 1rem}.page{padding:1.5rem 1rem 3rem}.nav-links{display:none}}
+  </style>
+</head>
+<body>
+<nav>
+  <div class="nav-brand">English Quest</div>
+  <div class="nav-links">
+    <a class="nav-link active" href="/student/dashboard.html">Dashboard</a>
+    <a class="nav-link" href="/student/submissions.html">Submissions</a>
+  </div>
+  <div style="display:flex;align-items:center;gap:.5rem">
+    <div class="nav-user">
+      <div class="nav-avatar" id="nav-avatar">?</div>
+      <div class="nav-username" id="nav-username">—</div>
+    </div>
+    <button class="btn-logout" onclick="handleLogout()">Sign out</button>
+  </div>
+</nav>
+<div class="page">
+  <div class="greeting-block">
+    <div class="greeting-label" id="greeting-time">Good evening</div>
+    <div class="greeting-name" id="greeting-name">—</div>
+    <div class="greeting-meta" id="greeting-meta">—</div>
+  </div>
+  <div class="quick-stats">
+    <div class="qs"><div class="qs-label">Activeness</div><div class="qs-value" id="qs-act" style="color:var(--accent)">—</div><div class="qs-sub">Total points</div></div>
+    <div class="qs"><div class="qs-label">Class Rank</div><div class="qs-value" id="qs-rank" style="color:var(--amber)">—</div><div class="qs-sub">In your class</div></div>
+    <div class="qs"><div class="qs-label">C4 Average</div><div class="qs-value" id="qs-c4" style="color:var(--success)">—</div><div class="qs-sub">Chapter 4</div></div>
+    <div class="qs"><div class="qs-label">C5 Average</div><div class="qs-value" id="qs-c5" style="color:var(--success)">—</div><div class="qs-sub">Chapter 5</div></div>
+  </div>
+  <div class="section-label">Activeness Breakdown</div>
+  <div class="act-grid" id="act-grid">
+    <div class="act-card"><div class="skel" style="height:50px"></div></div>
+    <div class="act-card"><div class="skel" style="height:50px"></div></div>
+    <div class="act-card"><div class="skel" style="height:50px"></div></div>
+    <div class="act-card"><div class="skel" style="height:50px"></div></div>
+    <div class="act-card"><div class="skel" style="height:50px"></div></div>
+    <div class="act-card"><div class="skel" style="height:50px"></div></div>
+  </div>
+  <div class="section-label">My Scores</div>
+  <div class="scores-wrap">
+    <div class="scores-tabs">
+      <button class="score-tab active" onclick="switchScoreTab('C4',this)">Chapter 4</button>
+      <button class="score-tab" onclick="switchScoreTab('C5',this)">Chapter 5</button>
+      <button class="score-tab" onclick="switchScoreTab('ASAT',this)">ASAT</button>
+      <button class="score-tab" onclick="switchScoreTab('FINAL',this)">Final</button>
+    </div>
+    <div class="scores-body" id="scores-body"><div class="score-empty">Loading scores...</div></div>
+  </div>
+  <div class="section-label">Strikes</div>
+  <div class="strikes-wrap">
+    <div class="strikes-header">Strike Record</div>
+    <div class="strikes-body" id="strikes-body"><div class="skel" style="height:40px;width:100%"></div></div>
+  </div>
+  <div class="section-label">Classmates · Activeness Ranking</div>
+  <div class="classmates-wrap">
+    <div class="classmates-header">
+      <div class="classmates-title" id="classmates-title">Class</div>
+      <input class="classmates-search" type="text" placeholder="Search name..." oninput="filterClassmates(this.value)">
+    </div>
+    <div id="classmates-list">
+      <div class="classmate-row"><div class="skel" style="height:20px;width:100%"></div></div>
+      <div class="classmate-row"><div class="skel" style="height:20px;width:100%"></div></div>
+      <div class="classmate-row"><div class="skel" style="height:20px;width:100%"></div></div>
+    </div>
+  </div>
+</div>
+<script>
+const SUPABASE_URL='https://unbvljjgiqyphtykbkdb.supabase.co';
+const SUPABASE_KEY='sb_publishable_DFTQJ5niT0OiWVwpeNwM1A_W18mJ1oT';
+const {createClient}=supabase;
+const db=createClient(SUPABASE_URL,SUPABASE_KEY);
+const CATS=[
+  {key:'vocabulary_box',label:'Vocab Box',icon:'📚',pts:1},
+  {key:'answering',label:'Answering',icon:'🙋',pts:2},
+  {key:'presenting',label:'Presenting',icon:'🎤',pts:5},
+  {key:'task_on_time',label:'Task On Time',icon:'✅',pts:2},
+  {key:'helping_hand',label:'Helping Hand',icon:'🤝',pts:1},
+  {key:'quiz',label:'Quiz',icon:'🎯',pts:1},
+];
+const SCORE_COLORS=[{min:90,color:'#34d399'},{min:76,color:'#7c6ffa'},{min:61,color:'#e8a030'},{min:0,color:'#f87171'}];
+let myStudent=null,myScores={},allStudents=[];
+const hr=new Date().getHours();
+document.getElementById('greeting-time').textContent=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
+function getScoreColor(s){for(const{min,color}of SCORE_COLORS)if(s>=min)return color;return'#f87171'}
+async function init(){
+  const{data:{user}}=await db.auth.getUser();
+  if(!user){window.location.href='/index-login.html';return}
+  if(user.user_metadata?.role==='teacher'){window.location.href='/teacher/dashboard.html';return}
+  const{data:student}=await db.from('students').select('*,classes(name)').eq('user_id',user.id).single();
+  if(!student){document.getElementById('greeting-name').textContent='Student not found';return}
+  myStudent=student;
+  const firstName=student.full_name.split(' ')[0];
+  const cls=student.classes?.name||'—';
+  document.getElementById('nav-avatar').textContent=firstName[0].toUpperCase();
+  document.getElementById('nav-username').textContent=firstName;
+  document.getElementById('greeting-name').textContent=student.full_name;
+  document.getElementById('greeting-meta').textContent='Class '+cls+' · English Quest';
+  document.getElementById('classmates-title').textContent='Class '+cls;
+  await Promise.all([loadActiveness(student.id),loadScores(student.id),loadStrikes(student.id),loadClassmates(student.class_id,student.id)]);
+}
+async function loadActiveness(sid){
+  const{data:act}=await db.from('activeness').select('*').eq('student_id',sid).single();
+  if(!act){
+    document.getElementById('act-grid').innerHTML=CATS.map(c=>`<div class="act-card"><div class="act-cat">${c.icon} ${c.label}</div><div class="act-val" style="color:var(--muted)">0</div><div class="act-pts">0 pts</div></div>`).join('');
+    document.getElementById('qs-act').textContent='0';return;
+  }
+  const total=CATS.reduce((s,c)=>s+(act[c.key]||0)*c.pts,0);
+  document.getElementById('qs-act').textContent=total;
+  document.getElementById('act-grid').innerHTML=CATS.map(c=>{
+    const val=act[c.key]||0,pts=val*c.pts;
+    return`<div class="act-card"><div class="act-cat">${c.icon} ${c.label}</div><div class="act-val" style="color:var(--accent)">${val}</div><div class="act-pts">+${pts} pts</div></div>`;
+  }).join('');
+}
+async function loadScores(sid){
+  const{data:scores}=await db.from('scores').select('*').eq('student_id',sid);
+  myScores={};
+  (scores||[]).forEach(s=>{myScores[s.chapter+'_'+s.task_number]=s.score});
+  const c4=[1,2,3,4,5,6,7].map(t=>myScores['C4_'+t]).filter(v=>v!=null);
+  const c5=[1,2,3,4,5].map(t=>myScores['C5_'+t]).filter(v=>v!=null);
+  document.getElementById('qs-c4').textContent=c4.length?Math.round(c4.reduce((a,b)=>a+b,0)/c4.length):'—';
+  document.getElementById('qs-c5').textContent=c5.length?Math.round(c5.reduce((a,b)=>a+b,0)/c5.length):'—';
+  renderScores('C4');
+}
+function renderScores(ch){
+  const body=document.getElementById('scores-body');
+  if(ch==='C4'||ch==='C5'){
+    const tasks=ch==='C4'?[1,2,3,4,5,6,7]:[1,2,3,4,5];
+    const rows=tasks.map(t=>{
+      const score=myScores[ch+'_'+t],has=score!=null,color=has?getScoreColor(score):'var(--muted)',pct=has?score:0;
+      return`<div class="score-row"><div class="score-task">Task ${t}</div><div class="score-bar-wrap"><div class="score-bar" style="width:${pct}%;background:${color}"></div></div><div class="score-val" style="color:${color}">${has?score:'—'}</div></div>`;
+    });
+    const filled=tasks.map(t=>myScores[ch+'_'+t]).filter(v=>v!=null);
+    const avg=filled.length?Math.round(filled.reduce((a,b)=>a+b,0)/filled.length):null;
+    if(avg!==null)rows.push(`<div class="score-row" style="background:var(--surface2)"><div class="score-task" style="color:var(--amber)">Average</div><div class="score-bar-wrap"><div class="score-bar" style="width:${avg}%;background:var(--amber)"></div></div><div class="score-val" style="color:var(--amber)">${avg}</div></div>`);
+    body.innerHTML=rows.join('')||'<div class="score-empty">No scores yet.</div>';
+  }else if(ch==='ASAT'){
+    const s=myScores['ASAT_1'];
+    if(s==null){body.innerHTML='<div class="score-empty">ASAT score not yet recorded.</div>';return}
+    const c=getScoreColor(s);
+    body.innerHTML=`<div class="score-row"><div class="score-task">ASAT</div><div class="score-bar-wrap"><div class="score-bar" style="width:${s}%;background:${c}"></div></div><div class="score-val" style="color:${c}">${s}</div></div>`;
+  }else{
+    const s1=myScores['FINAL_1'],s2=myScores['FINAL_2'],avg=s1!=null&&s2!=null?Math.round((s1+s2)/2):null;
+    if(s1==null&&s2==null){body.innerHTML='<div class="score-empty">Final scores not yet recorded.</div>';return}
+    let html='';
+    if(s1!=null)html+=`<div class="score-row"><div class="score-task">Sem 1</div><div class="score-bar-wrap"><div class="score-bar" style="width:${s1}%;background:${getScoreColor(s1)}"></div></div><div class="score-val" style="color:${getScoreColor(s1)}">${s1}</div></div>`;
+    if(s2!=null)html+=`<div class="score-row"><div class="score-task">Sem 2</div><div class="score-bar-wrap"><div class="score-bar" style="width:${s2}%;background:${getScoreColor(s2)}"></div></div><div class="score-val" style="color:${getScoreColor(s2)}">${s2}</div></div>`;
+    if(avg!==null)html+=`<div class="score-row" style="background:var(--surface2)"><div class="score-task" style="color:var(--amber)">Final</div><div class="score-bar-wrap"><div class="score-bar" style="width:${avg}%;background:var(--amber)"></div></div><div class="score-val" style="color:var(--amber)">${avg}</div></div>`;
+    body.innerHTML=html;
+  }
+}
+function switchScoreTab(ch,btn){
+  document.querySelectorAll('.score-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');renderScores(ch);
+}
+async function loadStrikes(sid){
+  const{data:strikes}=await db.from('strikes').select('*').eq('student_id',sid);
+  const count=strikes?.length||0;
+  const dots=[1,2,3,4].map(n=>`<div class="strike-dot ${n<=count?'active':''}">${n<=count?'⚠️':''}</div>`).join('');
+  const msg=count===0?'No strikes. Keep it up!':count===1?'1 strike — submit clearance text to teacher.':count>=3?`${count} strikes — you cannot join class until resolved.`:`${count} strikes — clear them before the summative.`;
+  document.getElementById('strikes-body').innerHTML=`<div class="strike-dots">${dots}</div><div class="strikes-info"><div class="strikes-count">${count} strike${count!==1?'s':''}</div><div class="strikes-note">${msg}</div></div>`;
+}
+async function loadClassmates(classId,myId){
+  const{data:classStudents}=await db.from('students').select('id,full_name').eq('class_id',classId).order('full_name');
+  if(!classStudents)return;
+  const{data:acts}=await db.from('activeness').select('*').in('student_id',classStudents.map(s=>s.id));
+  const actMap={};
+  (acts||[]).forEach(a=>{actMap[a.student_id]=CATS.reduce((s,c)=>s+(a[c.key]||0)*c.pts,0)});
+  allStudents=classStudents.map((s,i)=>({...s,total:actMap[s.id]||0,number:String(i+1).padStart(2,'0')})).sort((a,b)=>b.total-a.total);
+  const myRank=allStudents.findIndex(s=>s.id===myId)+1;
+  document.getElementById('qs-rank').textContent=myRank>0?'#'+myRank:'—';
+  renderClassmates(allStudents,myId);
+}
+function renderClassmates(list,myId){
+  const mid=myId||myStudent?.id;
+  document.getElementById('classmates-list').innerHTML=list.map((s,i)=>{
+    const isMe=s.id===mid;
+    return`<div class="classmate-row ${isMe?'is-me':''}"><div class="classmate-no">${String(i+1).padStart(2,'0')}</div><div class="classmate-avatar ${isMe?'me':''}">${s.full_name[0].toUpperCase()}</div><div class="classmate-name ${isMe?'me':''}">${s.full_name}</div>${isMe?'<div class="me-badge">You</div>':''}<div class="classmate-pts">${s.total} pts</div></div>`;
+  }).join('');
+}
+function filterClassmates(q){renderClassmates(allStudents.filter(s=>s.full_name.toLowerCase().includes(q.toLowerCase())))}
+async function handleLogout(){await db.auth.signOut();window.location.href='/index-login.html'}
+init();
+</script>
+</body>
+</html>
