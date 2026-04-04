@@ -751,7 +751,9 @@
   <div class="nav-links">
     <button class="nav-btn ghost" onclick="scrollTo({top: document.getElementById('hof').offsetTop - 80, behavior:'smooth'})">Hall of Fame</button>
     <button class="nav-btn ghost" onclick="scrollTo({top: document.getElementById('resources').offsetTop - 80, behavior:'smooth'})">Resources</button>
-    <a class="nav-btn primary" href="/index-login.html">Log In</a>
+    <div id="nav-auth">
+  <a class="nav-btn primary" href="/index-login.html">Log In</a>
+</div>
   </div>
 </nav>
 
@@ -1055,13 +1057,18 @@
     const { data: student } = await db.from('students').select('full_name').eq('user_id', user.id).single();
     displayName = student?.full_name.split(' ')[0] || 'Student';
   }
-
+  
   document.getElementById('hero-actions').innerHTML = `
     <a class="btn-hero primary" href="${role === 'teacher' ? '/teacher/dashboard.html' : '/student/dashboard.html'}">
       Go to My Dashboard
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
     </a>
     <button class="btn-hero outline" onclick="handleLogout()">Sign Out, ${displayName}</button>
+  `;
+
+  document.getElementById('nav-auth').innerHTML = `
+    <a class="nav-btn ghost" href="${role === 'teacher' ? '/teacher/dashboard.html' : '/student/dashboard.html'}" style="color:var(--text);">${displayName}</a>
+    <button class="nav-btn ghost" onclick="handleLogout()" style="color:var(--muted);">Sign out</button>
   `;
 }
 
