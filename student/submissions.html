@@ -147,7 +147,7 @@ function renderTasks(ch){
         <div class="uploading-bar" id="bar-${key}"></div>
       </div>
       <div class="task-actions">
-        ${submitted?`<a class="btn-view" href="${sub.file_url}" target="_blank">View</a>`:''}
+        ${submitted?`<button class="btn-view" onclick="viewFile('${sub.file_url}')">View</button>`:''}
         <button class="btn-upload" onclick="triggerUpload('${ch}',${t},'${key}')">
           ${submitted?'Resubmit':'Upload PDF'}
         </button>
@@ -190,8 +190,7 @@ async function handleFileSelected(input){
   bar.style.width='70%';
 
   // Get public URL
-  const{data:urlData}=db.storage.from('submissions').getPublicUrl(path);
-  const fileUrl=urlData.publicUrl;
+  const fileUrl=path;
 
   // Upsert submission record
   const existing=submissionsMap[key];
@@ -225,6 +224,11 @@ function showToast(msg,type){
   if(type!=='loading')window._toastTimer=setTimeout(()=>el.className='toast',3000);
 }
 
+async function viewFile(path){
+  const{data}=await db.storage.from('submissions').createSignedUrl(path,3600);
+  if(data?.signedUrl)window.open(data.signedUrl,'_blank');
+  else showToast('Could not open file','error');
+}
 async function handleLogout(){await db.auth.signOut();window.location.href='/index-login.html'}
 
 init();
