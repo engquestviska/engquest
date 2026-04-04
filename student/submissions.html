@@ -81,9 +81,8 @@
     <div class="page-sub">PDF files only · Max 10MB per file · You can resubmit to overwrite</div>
   </div>
   <div class="chapter-tabs">
-    <button class="chapter-tab active" onclick="switchChapter('C4',this)">Chapter 4</button>
-    <button class="chapter-tab" onclick="switchChapter('C5',this)">Chapter 5</button>
-  </div>
+    <button class="chapter-tab active" onclick="switchChapter('C5',this)">Chapter 5</button>
+</div>
   <div class="notice">📄 PDF files only. Do not upload photos or images. Convert your work to PDF first.</div>
   <div class="task-grid" id="task-grid">
     <div class="task-card"><div class="skel" style="height:40px;width:100%"></div></div>
@@ -98,7 +97,7 @@ const SUPABASE_URL='https://unbvljjgiqyphtykbkdb.supabase.co';
 const SUPABASE_KEY='sb_publishable_DFTQJ5niT0OiWVwpeNwM1A_W18mJ1oT';
 const {createClient}=supabase;
 const db=createClient(SUPABASE_URL,SUPABASE_KEY);
-const CHAPTERS={C4:{label:'Chapter 4',tasks:7},C5:{label:'Chapter 5',tasks:5}};
+const CHAPTERS={C5:{label:'Chapter 5',tasks:5}};
 let myStudent=null,currentChapter='C4',submissionsMap={},pendingUpload=null;
 
 async function init(){
@@ -112,7 +111,7 @@ async function init(){
   document.getElementById('nav-avatar').textContent=firstName[0].toUpperCase();
   document.getElementById('nav-username').textContent=firstName;
   await loadSubmissions();
-  renderTasks('C4');
+  renderTasks('C5');
 }
 
 async function loadSubmissions(){
