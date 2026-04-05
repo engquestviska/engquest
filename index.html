@@ -572,118 +572,6 @@
       transform: translateX(3px);
     }
 
-    /* ── ANNOUNCEMENT BANNER ── */
-    .ann-strip {
-      display: none;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 0.75rem 2.5rem;
-      position: relative;
-      z-index: 1;
-    }
-
-    .ann-strip.show { display: block; }
-
-    .ann-strip-inner {
-      max-width: 1100px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .ann-type-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-
-    .ann-strip .ann-title {
-      font-size: 0.84rem;
-      font-weight: 600;
-      flex-shrink: 0;
-    }
-
-    .ann-strip .ann-body {
-      font-size: 0.82rem;
-      color: var(--muted);
-      flex: 1;
-    }
-
-    .ann-dismiss {
-      background: none;
-      border: none;
-      color: var(--muted);
-      cursor: pointer;
-      font-size: 1rem;
-      padding: 0.1rem 0.3rem;
-      flex-shrink: 0;
-      transition: color 0.12s;
-    }
-
-    .ann-dismiss:hover { color: var(--text); }
-
-    /* ── SUMMATIVE BANNER ── */
-    .summ-strip {
-      display: none;
-      border-bottom: 1px solid rgba(109,101,245,0.2);
-      background: rgba(109,101,245,0.06);
-      padding: 0.7rem 2.5rem;
-      position: relative;
-      z-index: 1;
-    }
-
-    .summ-strip.show { display: block; }
-
-    .summ-strip-inner {
-      max-width: 1100px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .summ-pulse {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--indigo);
-      flex-shrink: 0;
-      animation: pulse 1.5s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(109,101,245,0.6); }
-      50% { box-shadow: 0 0 0 6px rgba(109,101,245,0); }
-    }
-
-    .summ-label {
-      font-size: 0.65rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--indigo);
-      flex-shrink: 0;
-    }
-
-    .summ-text {
-      font-size: 0.82rem;
-      color: var(--muted);
-      flex: 1;
-    }
-
-    .summ-text strong { color: var(--text); }
-
-    .summ-countdown {
-      font-size: 0.78rem;
-      font-weight: 600;
-      color: var(--text);
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      padding: 0.25rem 0.75rem;
-      border-radius: 999px;
-      flex-shrink: 0;
-    }
-
     /* ── FOOTER ── */
     footer {
       border-top: 1px solid var(--border);
@@ -757,24 +645,27 @@
   </div>
 </nav>
 
-<!-- Announcement strip -->
-<div class="ann-strip" id="annStrip">
-  <div class="ann-strip-inner">
-    <div class="ann-type-dot" id="annDot"></div>
-    <div class="ann-title" id="annTitle"></div>
-    <div class="ann-body" id="annBody"></div>
-    <button class="ann-dismiss" onclick="dismissAnn()">✕</button>
-  </div>
-</div>
+<!-- Announcement + Summative banners -->
+<div id="banners" style="max-width:1100px;margin:2rem auto 0;padding:0 2.5rem;display:flex;flex-direction:column;gap:.75rem;position:relative;z-index:2;">
 
-<!-- Summative strip -->
-<div class="summ-strip" id="summStrip">
-  <div class="summ-strip-inner">
-    <div class="summ-pulse"></div>
-    <div class="summ-label">Summative</div>
-    <div class="summ-text" id="summText">Loading...</div>
-    <div class="summ-countdown" id="summCountdown"></div>
+  <div id="annBanner" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem 1.5rem;display:none;align-items:flex-start;gap:1rem;border-left:4px solid var(--indigo);">
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:.3rem;" id="annType">📢 Announcement</div>
+      <div style="font-size:1rem;font-weight:600;color:var(--text);margin-bottom:.25rem;" id="annTitle"></div>
+      <div style="font-size:.84rem;color:var(--muted);font-weight:300;" id="annBody"></div>
+    </div>
+    <button onclick="dismissAnn()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem;padding:.2rem;flex-shrink:0;">✕</button>
   </div>
+
+  <div id="summBanner" style="display:none;background:rgba(109,101,245,0.08);border:1px solid rgba(109,101,245,0.25);border-radius:12px;padding:1.25rem 1.5rem;display:none;align-items:center;gap:1rem;border-left:4px solid var(--indigo);">
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--indigo);margin-bottom:.3rem;">📝 Summative</div>
+      <div style="font-size:1rem;font-weight:600;color:var(--text);margin-bottom:.25rem;" id="summTitle"></div>
+      <div style="font-size:.84rem;color:var(--muted);font-weight:300;" id="summDate"></div>
+    </div>
+    <div id="summCountdown" style="font-size:.82rem;font-weight:600;color:var(--text);background:var(--surface2);border:1px solid var(--border);padding:.35rem 1rem;border-radius:999px;flex-shrink:0;white-space:nowrap;"></div>
+  </div>
+
 </div>
 
 <!-- Hero -->
@@ -1028,29 +919,36 @@
   async function loadAnnouncement() {
   const { data } = await db.from('announcements').select('*').order('posted_at', { ascending: false }).limit(1).single();
   if (!data) return;
-  const colors = { info:'#7c6ffa', warning:'#e8a030', success:'#34d399', urgent:'#f87171' };
-  document.getElementById('annDot').style.background = colors[data.type] || '#7c6ffa';
+  const colors = { info:'var(--indigo)', warning:'var(--amber)', success:'var(--success)', urgent:'var(--danger)' };
+  const icons  = { info:'📢', warning:'⚠️', success:'✅', urgent:'🚨' };
+  const color  = colors[data.type] || 'var(--indigo)';
+  const icon   = icons[data.type] || '📢';
+  const banner = document.getElementById('annBanner');
+  document.getElementById('annType').textContent  = icon + ' ' + (data.type || 'info').toUpperCase();
+  document.getElementById('annType').style.color  = color;
   document.getElementById('annTitle').textContent = data.title || '';
-  document.getElementById('annBody').textContent = data.body || '';
-  document.getElementById('annStrip').classList.add('show');
+  document.getElementById('annBody').textContent  = data.body  || '';
+  banner.style.borderLeftColor = color;
+  banner.style.display = 'flex';
 }
 
   function dismissAnn() {
-    document.getElementById('annStrip').classList.remove('show');
-  }
+  document.getElementById('annBanner').style.display = 'none';
+}
 
   // Summative (placeholder — will be wired to Supabase later)
   async function loadSummative() {
   const { data } = await db.from('summative').select('*').order('updated_at', { ascending: false }).limit(1).single();
   if (!data) return;
-  const date = new Date(data.exam_date + 'T00:00:00');
+  const date   = new Date(data.exam_date + 'T00:00:00');
   const dateStr = date.toLocaleDateString('en-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
-  const diff = date - new Date();
-  const days = Math.ceil(diff / 86400000);
+  const diff   = date - new Date();
+  const days   = Math.ceil(diff / 86400000);
   const countdown = days > 0 ? `⏳ ${days} day${days !== 1 ? 's' : ''} left` : '🔴 Exam Day!';
-  document.getElementById('summText').innerHTML = `<strong>${data.title}</strong> · ${dateStr}`;
+  document.getElementById('summTitle').textContent = data.title || '';
+  document.getElementById('summDate').textContent  = dateStr;
   document.getElementById('summCountdown').textContent = countdown;
-  document.getElementById('summStrip').classList.add('show');
+  document.getElementById('summBanner').style.display = 'flex';
 }
 
   // Init
