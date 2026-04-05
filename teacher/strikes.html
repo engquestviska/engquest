@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>English Quest — Strikes</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--bg:#0c0c0f;--surface:#131317;--surface2:#1a1a20;--border:#222228;--accent:#7c6ffa;--amber:#e8a030;--text:#dddde8;--muted:#5a5a70;--subtle:#2e2e3a;--success:#34d399;--danger:#f87171}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;font-size:14px}
+    .sidebar{width:210px;flex-shrink:0;height:100vh;position:sticky;top:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column}
+    .sidebar-top{padding:1.75rem 1.5rem 1.5rem;border-bottom:1px solid var(--border)}
+    .wordmark{font-size:.9rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--text);text-decoration:none;display:block}
+    .school-label{font-size:.72rem;color:var(--muted);margin-top:.3rem;font-weight:300}
+    .nav{flex:1;padding:1.25rem 1rem;display:flex;flex-direction:column;gap:1px;overflow-y:auto}
+    .nav-group-label{font-size:.65rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:1rem .5rem .4rem}
+    .nav-link{display:flex;align-items:center;gap:.6rem;padding:.5rem .6rem;border-radius:6px;font-size:.875rem;font-weight:400;color:var(--muted);text-decoration:none;transition:color .12s,background .12s;border:none;background:none;width:100%;text-align:left;cursor:pointer}
+    .nav-link svg{width:14px;height:14px;flex-shrink:0;stroke:currentColor}
+    .nav-link:hover{color:var(--text);background:var(--surface2)}
+    .nav-link.active{color:var(--text);background:var(--surface2);font-weight:500}
+    .sidebar-foot{padding:1rem;border-top:1px solid var(--border)}
+    .user-row{display:flex;align-items:center;gap:.6rem;padding:.4rem .5rem}
+    .avatar{width:28px;height:28px;border-radius:50%;background:var(--subtle);color:var(--accent);font-size:.75rem;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .user-meta{flex:1;min-width:0}
+    .user-name{font-size:.8rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+    .user-role{font-size:.68rem;color:var(--muted)}
+    .btn-logout{background:none;border:none;cursor:pointer;color:var(--muted);padding:.2rem .4rem;border-radius:4px;transition:color .12s;font-size:.75rem;display:flex;align-items:center;gap:.3rem;font-family:'DM Sans',sans-serif}
+    .btn-logout:hover{color:var(--danger)}
+    .btn-logout svg{width:13px;height:13px}
+    .main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+    .topbar{padding:1.5rem 2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-shrink:0}
+    .page-heading{font-size:1.2rem;font-weight:600;letter-spacing:-.01em}
+    .class-tabs{display:flex;gap:4px;flex-wrap:wrap}
+    .class-tab{padding:.3rem .75rem;border-radius:6px;font-size:.78rem;font-weight:500;color:var(--muted);background:none;border:1px solid var(--border);cursor:pointer;transition:all .12s;font-family:'DM Sans',sans-serif}
+    .class-tab:hover{color:var(--text);border-color:var(--subtle)}
+    .class-tab.active{color:var(--text);background:var(--surface2);border-color:var(--accent)}
+    .toolbar{padding:.75rem 2rem;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:.75rem}
+    .search-input{padding:.4rem .85rem;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:.82rem;font-family:'DM Sans',sans-serif;outline:none;width:220px;transition:border-color .12s}
+    .search-input:focus{border-color:var(--accent)}
+    .search-input::placeholder{color:var(--muted)}
+    .table-wrap{flex:1;overflow:auto}
+    table{border-collapse:collapse;min-width:100%}
+    thead{position:sticky;top:0;z-index:10;background:var(--surface)}
+    thead th{font-size:.67rem;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:.75rem 1rem;border-bottom:1px solid var(--border);white-space:nowrap;text-align:left}
+    thead th:first-child{padding-left:2rem;width:40px}
+    thead th:last-child{text-align:center}
+    tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+    tbody tr:hover{background:var(--surface)}
+    tbody td{padding:.65rem 1rem;vertical-align:middle}
+    td:first-child{padding-left:2rem;font-size:.72rem;color:var(--muted)}
+    .student-name{font-size:.84rem;font-weight:400}
+    .strike-dots{display:flex;gap:.3rem;align-items:center}
+    .strike-dot{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.6rem;border:1px solid var(--border)}
+    .strike-dot.active{background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.3);color:var(--danger)}
+    .strike-dot.empty{background:var(--surface2);color:var(--subtle)}
+    .strike-actions{display:flex;gap:.4rem;justify-content:center}
+    .btn-give{padding:.3rem .75rem;border-radius:6px;font-size:.75rem;font-weight:600;cursor:pointer;border:1px solid rgba(248,113,113,.3);background:rgba(248,113,113,.06);color:var(--danger);transition:all .12s;font-family:'DM Sans',sans-serif}
+    .btn-give:hover{background:rgba(248,113,113,.15)}
+    .btn-remove{padding:.3rem .75rem;border-radius:6px;font-size:.75rem;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--muted);transition:all .12s;font-family:'DM Sans',sans-serif}
+    .btn-remove:hover{color:var(--text);border-color:var(--subtle)}
+    .btn-remove:disabled{opacity:.3;cursor:not-allowed}
+    .state-msg{padding:3rem 2rem;color:var(--muted);font-size:.84rem;font-weight:300}
+    /* Modal */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:200;display:flex;align-items:center;justify-content:center;padding:1rem}
+    .modal-overlay.hidden{display:none}
+    .modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;width:100%;max-width:400px}
+    .modal-title{font-size:1rem;font-weight:600;margin-bottom:.25rem}
+    .modal-sub{font-size:.82rem;color:var(--muted);font-weight:300;margin-bottom:1.25rem}
+    .modal-field label{display:block;font-size:.7rem;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.4rem}
+    .modal-field input,.modal-field textarea{width:100%;padding:.55rem .85rem;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:.84rem;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .12s;resize:none;margin-bottom:1rem}
+    .modal-field input:focus,.modal-field textarea:focus{border-color:var(--danger)}
+    .modal-actions{display:flex;gap:.5rem}
+    .btn-confirm{flex:1;padding:.6rem;background:var(--danger);color:#fff;border:none;border-radius:6px;font-size:.84rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
+    .btn-cancel{padding:.6rem 1rem;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:.84rem;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif}
+    .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.55rem 1rem;font-size:.78rem;color:var(--muted);display:none;align-items:center;gap:.5rem;box-shadow:0 4px 20px rgba(0,0,0,.5);z-index:300}
+    .toast.show{display:flex}
+    .toast.success{color:var(--success);border-color:rgba(52,211,153,.3)}
+    .toast.error{color:var(--danger);border-color:rgba(248,113,113,.3)}
+    .main{animation:fadeUp .25s ease both}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  </style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-top">
+    <a class="wordmark" href="/index.html">English Quest</a>
+    <div class="school-label">SMA Negeri 6 Surakarta</div>
+  </div>
+  <nav class="nav">
+    <span class="nav-group-label">Main</span>
+    <a class="nav-link" href="/teacher/dashboard.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</a>
+    <a class="nav-link" href="/teacher/activeness.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Activeness</a>
+    <a class="nav-link" href="/teacher/scores.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Scores</a>
+    <span class="nav-group-label">Management</span>
+    <a class="nav-link" href="/teacher/submissions.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Submissions</a>
+    <a class="nav-link" href="/teacher/task-status.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Task Status</a>
+    <a class="nav-link" href="/teacher/attendance.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Attendance</a>
+    <a class="nav-link active" href="/teacher/strikes.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Strikes</a>
+    <a class="nav-link" href="/teacher/announcements.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Announcements</a>
+  </nav>
+  <div class="sidebar-foot">
+    <div class="user-row">
+      <div class="avatar" id="avatar-initials">—</div>
+      <div class="user-meta">
+        <div class="user-name" id="user-name">Loading</div>
+        <div class="user-role">Teacher</div>
+      </div>
+      <button class="btn-logout" onclick="handleLogout()">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Log out
+      </button>
+    </div>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="page-heading">Strikes</div>
+    <div class="class-tabs" id="class-tabs"></div>
+  </div>
+  <div class="toolbar">
+    <input class="search-input" type="text" id="search" placeholder="Search student..." oninput="filterStudents()">
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Student</th>
+          <th>Strikes</th>
+          <th>Reason</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        <tr><td colspan="5"><div class="state-msg">Select a class to begin.</div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Give Strike Modal -->
+<div class="modal-overlay hidden" id="giveModal">
+  <div class="modal">
+    <div class="modal-title">Give Strike</div>
+    <div class="modal-sub" id="give-modal-sub">—</div>
+    <div class="modal-field">
+      <label>Reason</label>
+      <textarea id="strike-reason" rows="3" placeholder="e.g. Did not submit Task 3, cheating, absent without permission..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeGiveModal()">Cancel</button>
+      <button class="btn-confirm" onclick="confirmGiveStrike()">Give Strike</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="toast-text"></span></div>
+
+<script>
+const SUPABASE_URL='https://unbvljjgiqyphtykbkdb.supabase.co';
+const SUPABASE_KEY='sb_publishable_DFTQJ5niT0OiWVwpeNwM1A_W18mJ1oT';
+const{createClient}=supabase;
+const db=createClient(SUPABASE_URL,SUPABASE_KEY);
+const CLASSES=['XE1','XE4','XE5','XE6','XE7','XE8','XE9','XE10','XE11'];
+let currentClass=null,students=[],strikesMap={},teacherId=null,pendingStudentId=null;
+
+async function init(){
+  const{data:{user}}=await db.auth.getUser();
+  if(!user){window.location.href='/index-login.html';return}
+  if(user.user_metadata?.role!=='teacher'){window.location.href='/index.html';return}
+  teacherId=user.id;
+  const name=user.email.split('@')[0];
+  document.getElementById('user-name').textContent=name;
+  document.getElementById('avatar-initials').textContent=name[0].toUpperCase();
+  document.getElementById('class-tabs').innerHTML=CLASSES.map(c=>`<button class="class-tab" onclick="selectClass('${c}')">${c}</button>`).join('');
+}
+
+async function selectClass(cls){
+  currentClass=cls;
+  document.querySelectorAll('.class-tab').forEach(t=>t.classList.toggle('active',t.textContent===cls));
+  document.getElementById('search').value='';
+  await loadData();
+}
+
+async function loadData(){
+  document.getElementById('tbody').innerHTML=`<tr><td colspan="5"><div class="state-msg">Loading...</div></td></tr>`;
+  const{data:classRow}=await db.from('classes').select('id').eq('name',currentClass).single();
+  if(!classRow)return;
+  const{data:rows}=await db.from('students').select('id,full_name').eq('class_id',classRow.id).order('full_name');
+  if(!rows||!rows.length){document.getElementById('tbody').innerHTML=`<tr><td colspan="5"><div class="state-msg">No students found.</div></td></tr>`;return}
+  students=rows;
+  const{data:strikes}=await db.from('strikes').select('*').in('student_id',rows.map(r=>r.id));
+  strikesMap={};
+  (strikes||[]).forEach(s=>{
+    if(!strikesMap[s.student_id])strikesMap[s.student_id]=[];
+    strikesMap[s.student_id].push(s);
+  });
+  renderTable(students);
+}
+
+function renderTable(list){
+  if(!list.length){document.getElementById('tbody').innerHTML=`<tr><td colspan="5"><div class="state-msg">No students match.</div></td></tr>`;return}
+  document.getElementById('tbody').innerHTML=list.map((s,i)=>{
+    const strikes=strikesMap[s.id]||[];
+    const count=strikes.length;
+    const lastReason=strikes.length?strikes[strikes.length-1].reason||'—':'—';
+    const dots=[1,2,3,4].map(n=>`<div class="strike-dot ${n<=count?'active':'empty'}">${n<=count?'⚠':''}</div>`).join('');
+    return`<tr data-name="${s.full_name.toLowerCase()}">
+      <td>${String(i+1).padStart(2,'0')}</td>
+      <td><div class="student-name">${s.full_name}</div></td>
+      <td><div class="strike-dots">${dots}<span style="font-size:.75rem;color:${count>0?'var(--danger)':'var(--muted)'};margin-left:.4rem;font-weight:${count>0?'600':'400'}">${count}</span></div></td>
+      <td><span style="font-size:.78rem;color:var(--muted);font-weight:300;">${count>0?lastReason:'—'}</span></td>
+      <td>
+        <div class="strike-actions">
+          <button class="btn-give" onclick="openGiveModal('${s.id}','${s.full_name.replace(/'/g,"\\'")}')">+ Strike</button>
+          <button class="btn-remove" onclick="removeStrike('${s.id}')" ${count===0?'disabled':''}>Remove</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function filterStudents(){
+  const q=document.getElementById('search').value.toLowerCase();
+  document.querySelectorAll('#tbody tr').forEach(row=>{
+    row.style.display=row.dataset.name?.includes(q)?'':'none';
+  });
+}
+
+function openGiveModal(sid,name){
+  pendingStudentId=sid;
+  document.getElementById('give-modal-sub').textContent='Giving strike to: '+name;
+  document.getElementById('strike-reason').value='';
+  document.getElementById('giveModal').classList.remove('hidden');
+}
+
+function closeGiveModal(){
+  document.getElementById('giveModal').classList.add('hidden');
+  pendingStudentId=null;
+}
+
+async function confirmGiveStrike(){
+  if(!pendingStudentId)return;
+  const reason=document.getElementById('strike-reason').value.trim();
+  await db.from('strikes').insert({student_id:pendingStudentId,reason:reason||null,given_by:teacherId});
+  closeGiveModal();
+  showToast('Strike given','success');
+  await loadData();
+}
+
+async function removeStrike(sid){
+  const strikes=strikesMap[sid]||[];
+  if(!strikes.length)return;
+  // Remove most recent strike
+  const last=strikes[strikes.length-1];
+  await db.from('strikes').delete().eq('id',last.id);
+  showToast('Strike removed','success');
+  await loadData();
+}
+
+function showToast(msg,type){
+  const el=document.getElementById('toast');
+  document.getElementById('toast-text').textContent=msg;
+  el.className='toast show '+(type||'');
+  setTimeout(()=>el.className='toast',2500);
+}
+
+async function handleLogout(){await db.auth.signOut();window.location.href='/index-login.html'}
+init();
+</script>
+</body>
+</html>
