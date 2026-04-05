@@ -514,6 +514,8 @@
       flex-shrink: 0;
     }
 
+    
+
     /* ── RESOURCES ── */
     .resource-grid {
       display: grid;
@@ -753,6 +755,21 @@
   </div>
 </section>
 
+<!-- Strike Board -->
+<section class="section" style="padding-top:0;">
+  <div class="reveal">
+    <div class="section-eyebrow">Attention</div>
+    <div class="section-title">Strike Board</div>
+    <div id="strike-board" style="border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--surface);">
+      <div style="padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);">Students with Active Strikes</div>
+        <div style="font-size:.7rem;color:var(--muted);font-weight:300;">Submit clearance text to your teacher to remove strikes</div>
+      </div>
+      <div id="strike-list"><div style="padding:2rem;text-align:center;font-size:.84rem;color:var(--muted);font-weight:300;">Loading...</div></div>
+    </div>
+  </div>
+</section>
+
 <!-- Resources -->
 <section id="resources" class="section" style="padding-top:0;">
   <div class="reveal">
@@ -956,6 +973,7 @@
   loadHoF();
   loadAnnouncement();
   loadSummative();
+  loadStrikeBoard();
   async function checkAuth() {
   const { data: { user } } = await db.auth.getUser();
   if (!user) return;
@@ -988,6 +1006,47 @@
 async function handleLogout() {
   await db.auth.signOut();
   window.location.reload();
+}
+
+async function loadStrikeBoard() {
+  const { data: strikes } = await db
+    .from('strikes')
+    .select('student_id, students(full_name, classes(name))')
+    .order('student_id');
+
+  const list = document.getElementById('strike-list');
+
+  if (!strikes || strikes.length === 0) {
+    list.innerHTML = '<div style="padding:2rem;text-align:center;font-size:.84rem;color:var(--muted);font-weight:300;">🎉 No active strikes. Keep it up everyone!</div>';
+    return;
+  }
+
+  // Count strikes per student
+  const counts = {};
+  strikes.forEach(s => {
+    const id   = s.student_id;
+    const name = s.students?.full_name || '—';
+    const cls  = s.students?.classes?.name || '—';
+    if (!counts[id]) counts[id] = { name, cls, count: 0 };
+    counts[id].count++;
+  });
+
+  const sorted = Object.values(counts).sort((a, b) => b.count - a.count);
+
+  list.innerHTML = sorted.map((s, i) => {
+    const dots = [1,2,3,4].map(n =>
+      `<span style="display:inline-flex;width:20px;height:20px;border-radius:50%;align-items:center;justify-content:center;font-size:.65rem;${n <= s.count ? 'background:rgba(248,113,113,0.15);color:var(--danger);border:1px solid rgba(248,113,113,0.3);' : 'background:var(--surface2);color:var(--subtle);border:1px solid var(--border);'}">⚠</span>`
+    ).join('');
+    return `<div style="display:flex;align-items:center;gap:.75rem;padding:.7rem 1.5rem;border-bottom:1px solid var(--border);${i === sorted.length-1 ? 'border-bottom:none;' : ''}">
+      <div style="width:24px;font-size:.7rem;color:var(--muted);text-align:center;">${i+1}</div>
+      <div style="width:28px;height:28px;border-radius:50%;background:rgba(248,113,113,0.15);color:var(--danger);font-size:.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${s.name[0]}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:.85rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.name}</div>
+        <div style="font-size:.7rem;color:var(--muted);">${s.cls}</div>
+      </div>
+      <div style="display:flex;gap:.25rem;">${dots}</div>
+    </div>`;
+  }).join('');
 }
 
 checkAuth();
