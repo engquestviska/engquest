@@ -2,14 +2,14 @@
 (function() {
   const style = document.createElement('style');
   style.textContent = `
-    [data-theme="light"] {
-      --bg:      #f5f5f8;
-      --surface: #ffffff;
-      --surface2:#f0f0f5;
-      --border:  #e0e0e8;
-      --text:    #1a1a2e;
-      --muted:   #707088;
-      --subtle:  #d0d0e0;
+    html[data-theme="light"] {
+      --bg:      #f5f5f8 !important;
+      --surface: #ffffff !important;
+      --surface2:#f0f0f5 !important;
+      --border:  #e0e0e8 !important;
+      --text:    #1a1a2e !important;
+      --muted:   #707088 !important;
+      --subtle:  #d0d0e0 !important;
     }
   `;
   document.head.appendChild(style);
