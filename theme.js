@@ -1,3 +1,20 @@
+// Apply light mode CSS variables via style injection
+(function() {
+  const style = document.createElement('style');
+  style.textContent = `
+    [data-theme="light"] {
+      --bg:      #f5f5f8;
+      --surface: #ffffff;
+      --surface2:#f0f0f5;
+      --border:  #e0e0e8;
+      --text:    #1a1a2e;
+      --muted:   #707088;
+      --subtle:  #d0d0e0;
+    }
+  `;
+  document.head.appendChild(style);
+})();
+
 // Load saved theme on every page
 (function() {
   const saved = localStorage.getItem('eq_theme');
