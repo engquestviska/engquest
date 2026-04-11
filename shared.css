@@ -1,0 +1,32 @@
+/* ── CSS Custom Properties ── */
+:root {
+  --bg:      #0c0c0f;
+  --surface: #131317;
+  --surface2:#1a1a20;
+  --border:  #222228;
+  --accent:  #7c6ffa;
+  --amber:   #e8a030;
+  --text:    #dddde8;
+  --muted:   #5a5a70;
+  --subtle:  #2e2e3a;
+  --success: #34d399;
+  --danger:  #f87171;
+}
+
+/* ── Theme toggle sizing for student nav bar ── */
+.nav-btn.theme-toggle-btn {
+  font-size: 1rem;
+  padding: .4rem .6rem;
+}
+
+/* ── Nav actions row (replaces inline flex divs) ── */
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+/* ── Responsive: hide sidebar on narrow screens ── */
+@media (max-width: 768px) {
+  .sidebar { display: none !important; }
+}

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>English Quest · SMA Negeri 6 Surakarta</title>
   <script src="/theme.js"></script>
+  <link rel="stylesheet" href="/shared.css"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,700;0,9..144,900;1,9..144,300;1,9..144,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
   <style>
@@ -642,7 +643,7 @@
   <div class="nav-links">
     <button class="nav-btn ghost" onclick="scrollTo({top: document.getElementById('hof').offsetTop - 80, behavior:'smooth'})">Hall of Fame</button>
     <button class="nav-btn ghost" onclick="scrollTo({top: document.getElementById('resources').offsetTop - 80, behavior:'smooth'})">Resources</button>
-    <button class="nav-btn ghost theme-toggle-btn" onclick="toggleTheme()" style="font-size:1rem;padding:.4rem .6rem;">🌙</button>
+    <button class="nav-btn ghost theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle theme">🌙</button>
     <div id="nav-auth">
   <a class="nav-btn primary" href="/index-login.html">Log In</a>
 </div>
@@ -1001,13 +1002,13 @@
 
   document.getElementById('nav-auth').innerHTML = `
     <a class="nav-btn ghost" href="${role === 'teacher' ? '/teacher/dashboard.html' : '/student/dashboard.html'}" style="color:var(--text);">${displayName}</a>
-    <button class="nav-btn ghost" onclick="handleLogout()" style="color:var(--muted);">Sign out</button>
+    <button class="nav-btn ghost" onclick="handleLogout()" aria-label="Log out" style="color:var(--muted);">Sign out</button>
   `;
 }
 
 async function handleLogout() {
   await db.auth.signOut();
-  window.location.reload();
+  window.location.href = '/index-login.html';
 }
 
 async function loadStrikeBoard() {

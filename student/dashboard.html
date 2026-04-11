@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>English Quest — My Dashboard</title>
   <script src="/theme.js"></script>
+  <link rel="stylesheet" href="/shared.css"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&family=Fraunces:opsz,wght@9..144,700&display=swap" rel="stylesheet"/>
   <style>
@@ -85,7 +86,8 @@
     .strikes-note{font-size:.76rem;color:var(--muted);font-weight:300}
     .skel{background:linear-gradient(90deg,var(--surface2) 25%,var(--border) 50%,var(--surface2) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:4px}
     @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-    @media(max-width:700px){.quick-stats{grid-template-columns:repeat(2,1fr)}.act-grid{grid-template-columns:repeat(2,1fr)}nav{padding:0 1rem}.page{padding:1.5rem 1rem 3rem}.nav-links{display:none}}
+    @media(max-width:900px){.nav-links{display:none}.classmates-section{display:none}}
+    @media(max-width:700px){.quick-stats{grid-template-columns:repeat(2,1fr)}.act-grid{grid-template-columns:repeat(2,1fr)}nav{padding:0 1rem}.page{padding:1.5rem 1rem 3rem}}
   </style>
 </head>
 <body>
@@ -95,14 +97,14 @@
   <a class="nav-link" href="/student/dashboard.html">Dashboard</a>
   <a class="nav-link" href="/student/tasks.html">Tasks</a>
   <a class="nav-link" href="/student/submissions.html">Submissions</a>
-  <button class="nav-btn ghost theme-toggle-btn" onclick="toggleTheme()" style="font-size:1rem;padding:.4rem .6rem;">🌙</button>
+  <button class="nav-btn ghost theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle theme">🌙</button>
 </div>
-  <div style="display:flex;align-items:center;gap:.5rem">
+  <div class="nav-actions">
     <div class="nav-user">
       <div class="nav-avatar" id="nav-avatar">?</div>
       <div class="nav-username" id="nav-username">—</div>
     </div>
-    <button class="btn-logout" onclick="handleLogout()">Sign out</button>
+    <button class="btn-logout" onclick="handleLogout()" aria-label="Log out">Sign out</button>
   </div>
 </nav>
 <div class="page">
@@ -145,7 +147,7 @@
   <div class="classmates-wrap">
     <div class="classmates-header">
       <div class="classmates-title" id="classmates-title">Class</div>
-      <input class="classmates-search" type="text" placeholder="Search name..." oninput="filterClassmates(this.value)">
+      <input class="classmates-search" type="text" placeholder="Search name..." aria-label="Search classmates" oninput="filterClassmates(this.value)">
     </div>
     <div id="classmates-list">
       <div class="classmate-row"><div class="skel" style="height:20px;width:100%"></div></div>

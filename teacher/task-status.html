@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>English Quest — Task Status</title>
   <script src="/theme.js"></script>
+  <link rel="stylesheet" href="/shared.css"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
   <style>
@@ -72,6 +73,7 @@
     .toast.saving{color:var(--amber);border-color:rgba(232,160,48,.3)}
     .main{animation:fadeUp .25s ease both}
     @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+      @media(max-width:768px){.sidebar{display:none}.main{min-width:0}}
   </style>
 </head>
 <body>
@@ -126,7 +128,7 @@
   <div class="toolbar">
     <button class="chapter-tab active" onclick="selectChapter('C4',this)">Chapter 4</button>
     <button class="chapter-tab" onclick="selectChapter('C5',this)">Chapter 5</button>
-    <input class="search-input" type="text" id="search" placeholder="Search student..." oninput="filterStudents()">
+    <input class="search-input" type="text" id="search" placeholder="Search student..." aria-label="Search students" oninput="filterStudents()">
     <button class="btn-sync" id="sync-btn" onclick="syncSubmissions()" disabled>⟳ Sync Submissions</button>
   </div>
   <div class="table-wrap">
