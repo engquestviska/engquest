@@ -149,14 +149,25 @@ function renderTasks(ch){
         <div class="uploading-bar" id="bar-${key}"></div>
       </div>
       <div class="task-actions">
-        ${submitted?`<button class="btn-view" onclick="viewFile('${sub.file_url}')">View</button>`:''}
-        <button class="btn-upload" onclick="triggerUpload('${ch}',${t},'${key}')">
+        ${submitted?`<button class="btn-view" data-url="${escAttr(sub.file_url)}">View</button>`:''}
+        <button class="btn-upload" data-ch="${escAttr(ch)}" data-task="${t}" data-key="${escAttr(key)}">
           ${submitted?'Resubmit':'Upload PDF'}
         </button>
       </div>
     </div>`;
   }
-  document.getElementById('task-grid').innerHTML=html;
+  const grid=document.getElementById('task-grid');
+  grid.innerHTML=html;
+  grid.querySelectorAll('.btn-view').forEach(btn=>{
+    btn.addEventListener('click',()=>viewFile(btn.dataset.url));
+  });
+  grid.querySelectorAll('.btn-upload').forEach(btn=>{
+    btn.addEventListener('click',()=>triggerUpload(btn.dataset.ch,Number(btn.dataset.task),btn.dataset.key));
+  });
+}
+
+function escAttr(str){
+  return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 function triggerUpload(ch,task,key){
