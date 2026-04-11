@@ -197,18 +197,26 @@ async function selectClass(cls){
 
 async function loadData(){
   document.getElementById('tbody').innerHTML=`<tr><td colspan="5"><div class="state-msg">Loading...</div></td></tr>`;
-  const{data:classRow}=await db.from('classes').select('id').eq('name',currentClass).single();
-  if(!classRow)return;
-  const{data:rows}=await db.from('students').select('id,full_name').eq('class_id',classRow.id).order('full_name');
-  if(!rows||!rows.length){document.getElementById('tbody').innerHTML=`<tr><td colspan="5"><div class="state-msg">No students found.</div></td></tr>`;return}
-  students=rows;
-  const{data:strikes}=await db.from('strikes').select('*').in('student_id',rows.map(r=>r.id));
-  strikesMap={};
-  (strikes||[]).forEach(s=>{
-    if(!strikesMap[s.student_id])strikesMap[s.student_id]=[];
-    strikesMap[s.student_id].push(s);
-  });
-  renderTable(students);
+  try{
+    const{data:classRow,error:e1}=await db.from('classes').select('id').eq('name',currentClass).single();
+    if(e1)throw e1;
+    if(!classRow)return;
+    const{data:rows,error:e2}=await db.from('students').select('id,full_name').eq('class_id',classRow.id).order('full_name');
+    if(e2)throw e2;
+    if(!rows||!rows.length){document.getElementById('tbody').innerHTML=`<tr><td colspan="5"><div class="state-msg">No students found.</div></td></tr>`;return}
+    students=rows;
+    const{data:strikes,error:e3}=await db.from('strikes').select('*').in('student_id',rows.map(r=>r.id));
+    if(e3)throw e3;
+    strikesMap={};
+    (strikes||[]).forEach(s=>{
+      if(!strikesMap[s.student_id])strikesMap[s.student_id]=[];
+      strikesMap[s.student_id].push(s);
+    });
+    renderTable(students);
+  }catch(e){
+    document.getElementById('tbody').innerHTML=`<tr><td colspan="5"><div class="state-msg">Failed to load. Please refresh.</div></td></tr>`;
+    console.error('loadData:',e);
+  }
 }
 
 function renderTable(list){
@@ -279,7 +287,7 @@ function showToast(msg,type){
 }
 
 async function handleLogout(){await db.auth.signOut();window.location.href='/index-login.html'}
-init();
+init().catch(console.error);
 </script>
 </body>
 </html>

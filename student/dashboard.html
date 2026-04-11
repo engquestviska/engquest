@@ -269,7 +269,7 @@ function renderClassmates(list,myId){
 }
 function filterClassmates(q){renderClassmates(allStudents.filter(s=>s.full_name.toLowerCase().includes(q.toLowerCase())))}
 async function handleLogout(){await db.auth.signOut();window.location.href='/index-login.html'}
-init();
+init().catch(console.error);
 </script>
 </body>
 </html>

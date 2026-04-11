@@ -185,15 +185,23 @@ function toggleFilter(){
 
 async function loadData(){
   document.getElementById('tbody').innerHTML=`<tr><td colspan="5"><div class="state-msg">Loading...</div></td></tr>`;
-  const{data:classRow}=await db.from('classes').select('id').eq('name',currentClass).single();
-  if(!classRow)return;
-  const{data:rows}=await db.from('students').select('id,full_name').eq('class_id',classRow.id).order('full_name');
-  if(!rows||!rows.length){document.getElementById('tbody').innerHTML=`<tr><td colspan="5"><div class="state-msg">No students found.</div></td></tr>`;return}
-  students=rows;
-  const{data:subs}=await db.from('submissions').select('*').in('student_id',rows.map(r=>r.id)).eq('chapter',currentChapter);
-  submissionsMap={};
-  (subs||[]).forEach(s=>{submissionsMap[s.student_id+'_'+s.task_number]=s});
-  renderTable();
+  try{
+    const{data:classRow,error:e1}=await db.from('classes').select('id').eq('name',currentClass).single();
+    if(e1)throw e1;
+    if(!classRow)return;
+    const{data:rows,error:e2}=await db.from('students').select('id,full_name').eq('class_id',classRow.id).order('full_name');
+    if(e2)throw e2;
+    if(!rows||!rows.length){document.getElementById('tbody').innerHTML=`<tr><td colspan="5"><div class="state-msg">No students found.</div></td></tr>`;return}
+    students=rows;
+    const{data:subs,error:e3}=await db.from('submissions').select('*').in('student_id',rows.map(r=>r.id)).eq('chapter',currentChapter);
+    if(e3)throw e3;
+    submissionsMap={};
+    (subs||[]).forEach(s=>{submissionsMap[s.student_id+'_'+s.task_number]=s});
+    renderTable();
+  }catch(e){
+    document.getElementById('tbody').innerHTML=`<tr><td colspan="5"><div class="state-msg">Failed to load. Please refresh.</div></td></tr>`;
+    console.error('loadData:',e);
+  }
 }
 
 function renderTable(){
@@ -230,7 +238,7 @@ async function downloadFile(path,filename){
 }
 
 async function handleLogout(){await db.auth.signOut();window.location.href='/index-login.html'}
-init();
+init().catch(console.error);
 </script>
 </body>
 </html>

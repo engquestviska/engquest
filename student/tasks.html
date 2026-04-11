@@ -144,15 +144,22 @@ async function init(){
 }
 
 async function loadData(){
-  const{data:classStudents}=await db.from('students').select('id,full_name').eq('class_id',myStudent.class_id).order('full_name');
-  if(!classStudents)return;
-  students=classStudents;
-  const ids=classStudents.map(s=>s.id);
-  const{data:statuses}=await db.from('task_status').select('*').in('student_id',ids);
-  statusMap={};
-  (statuses||[]).forEach(s=>{statusMap[s.student_id+'_'+s.chapter+'_'+s.task_number]=s.is_done});
-  renderMyStatus();
-  renderTable();
+  try{
+    const{data:classStudents,error}=await db.from('students').select('id,full_name').eq('class_id',myStudent.class_id).order('full_name');
+    if(error)throw error;
+    if(!classStudents)return;
+    students=classStudents;
+    const ids=classStudents.map(s=>s.id);
+    const{data:statuses,error:e2}=await db.from('task_status').select('*').in('student_id',ids);
+    if(e2)throw e2;
+    statusMap={};
+    (statuses||[]).forEach(s=>{statusMap[s.student_id+'_'+s.chapter+'_'+s.task_number]=s.is_done});
+    renderMyStatus();
+    renderTable();
+  }catch(e){
+    document.getElementById('tbody').innerHTML=`<tr><td colspan="20"><div class="state-msg">Failed to load. Please refresh.</div></td></tr>`;
+    console.error('loadData:',e);
+  }
 }
 
 function switchChapter(ch,btn){
@@ -219,7 +226,7 @@ function filterTable(){
 }
 
 async function handleLogout(){await db.auth.signOut();window.location.href='/index-login.html'}
-init();
+init().catch(console.error);
 </script>
 </body>
 </html>

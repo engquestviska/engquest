@@ -175,25 +175,34 @@ function selectChapter(ch,btn){
 
 async function loadData(){
   setLoading();
-  const{data:classRow}=await db.from('classes').select('id').eq('name',currentClass).single();
-  if(!classRow)return;
-  const{data:rows}=await db.from('students').select('id,full_name').eq('class_id',classRow.id).order('full_name');
-  if(!rows||!rows.length){setEmpty();return}
-  students=rows;
-  const ids=rows.map(r=>r.id);
+  try{
+    const{data:classRow,error:e1}=await db.from('classes').select('id').eq('name',currentClass).single();
+    if(e1)throw e1;
+    if(!classRow)return;
+    const{data:rows,error:e2}=await db.from('students').select('id,full_name').eq('class_id',classRow.id).order('full_name');
+    if(e2)throw e2;
+    if(!rows||!rows.length){setEmpty();return}
+    students=rows;
+    const ids=rows.map(r=>r.id);
 
-  const[{data:statuses},{data:subs}]=await Promise.all([
-    db.from('task_status').select('*').in('student_id',ids),
-    db.from('submissions').select('student_id,chapter,task_number').in('student_id',ids)
-  ]);
+    const[{data:statuses,error:e3},{data:subs,error:e4}]=await Promise.all([
+      db.from('task_status').select('*').in('student_id',ids),
+      db.from('submissions').select('student_id,chapter,task_number').in('student_id',ids)
+    ]);
+    if(e3)throw e3;
+    if(e4)throw e4;
 
-  statusMap={};
-  (statuses||[]).forEach(s=>{statusMap[s.student_id+'_'+s.chapter+'_'+s.task_number]={id:s.id,is_done:s.is_done}});
+    statusMap={};
+    (statuses||[]).forEach(s=>{statusMap[s.student_id+'_'+s.chapter+'_'+s.task_number]={id:s.id,is_done:s.is_done}});
 
-  submissionsMap={};
-  (subs||[]).forEach(s=>{submissionsMap[s.student_id+'_'+s.chapter+'_'+s.task_number]=true});
+    submissionsMap={};
+    (subs||[]).forEach(s=>{submissionsMap[s.student_id+'_'+s.chapter+'_'+s.task_number]=true});
 
-  renderTable(students);
+    renderTable(students);
+  }catch(e){
+    document.getElementById('tbody').innerHTML=`<tr><td colspan="20"><div class="state-msg">Failed to load. Please refresh.</div></td></tr>`;
+    console.error('loadData:',e);
+  }
 }
 
 function renderTable(list){
@@ -334,7 +343,7 @@ function showToast(msg,type){
 function hideToast(){document.getElementById('toast').className='toast'}
 
 async function handleLogout(){await db.auth.signOut();window.location.href='/index-login.html'}
-init();
+init().catch(console.error);
 </script>
 </body>
 </html>

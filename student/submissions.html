@@ -118,7 +118,8 @@ async function init(){
 }
 
 async function loadSubmissions(){
-  const{data}=await db.from('submissions').select('*').eq('student_id',myStudent.id);
+  const{data,error}=await db.from('submissions').select('*').eq('student_id',myStudent.id);
+  if(error){console.error('loadSubmissions:',error);return}
   submissionsMap={};
   (data||[]).forEach(s=>{submissionsMap[s.chapter+'_'+s.task_number]=s});
 }
@@ -208,15 +209,17 @@ async function handleFileSelected(input){
   // Upsert submission record
   const existing=submissionsMap[key];
   if(existing){
-    await db.from('submissions').update({file_url:fileUrl,submitted_at:new Date().toISOString()}).eq('id',existing.id);
+    const{error:ue}=await db.from('submissions').update({file_url:fileUrl,submitted_at:new Date().toISOString()}).eq('id',existing.id);
+    if(ue){bar.style.width='0';showToast('Save failed: '+ue.message,'error');return}
   }else{
-    const{data:newSub}=await db.from('submissions').insert({
+    const{data:newSub,error:ie}=await db.from('submissions').insert({
       student_id:myStudent.id,
       chapter:ch,
       task_number:task,
       file_url:fileUrl,
       submitted_at:new Date().toISOString()
     }).select().single();
+    if(ie){bar.style.width='0';showToast('Save failed: '+ie.message,'error');return}
     if(newSub)submissionsMap[key]=newSub;
   }
 
@@ -238,13 +241,13 @@ function showToast(msg,type){
 }
 
 async function viewFile(path){
-  const{data}=await db.storage.from('submissions').createSignedUrl(path,3600);
-  if(data?.signedUrl)window.open(data.signedUrl,'_blank');
-  else showToast('Could not open file','error');
+  const{data,error}=await db.storage.from('submissions').createSignedUrl(path,3600);
+  if(error||!data?.signedUrl){showToast('Could not open file','error');return}
+  window.open(data.signedUrl,'_blank');
 }
 async function handleLogout(){await db.auth.signOut();window.location.href='/index-login.html'}
 
-init();
+init().catch(console.error);
 </script>
 </body>
 </html>

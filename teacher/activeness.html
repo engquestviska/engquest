@@ -514,45 +514,54 @@
     document.getElementById('search').value = '';
     setLoading();
 
-    // Get class id
-    const { data: classRow } = await db.from('classes').select('id').eq('name', cls).single();
-    if (!classRow) return;
+    try {
+      // Get class id
+      const { data: classRow, error: e1 } = await db.from('classes').select('id').eq('name', cls).single();
+      if (e1) throw e1;
+      if (!classRow) return;
 
-    // Get students
-    const { data: rows } = await db
-      .from('students')
-      .select('id, full_name')
-      .eq('class_id', classRow.id)
-      .order('full_name');
+      // Get students
+      const { data: rows, error: e2 } = await db
+        .from('students')
+        .select('id, full_name')
+        .eq('class_id', classRow.id)
+        .order('full_name');
+      if (e2) throw e2;
 
-    if (!rows || rows.length === 0) {
+      if (!rows || rows.length === 0) {
+        document.getElementById('tbody').innerHTML =
+          `<tr><td colspan="8"><div class="state-msg">No students in this class.</div></td></tr>`;
+        return;
+      }
+
+      // Get activeness
+      const { data: acts, error: e3 } = await db
+        .from('activeness')
+        .select('*')
+        .in('student_id', rows.map(r => r.id));
+      if (e3) throw e3;
+
+      const actMap = {};
+      (acts || []).forEach(a => actMap[a.student_id] = a);
+
+      students = rows.map(r => ({
+        id:            r.id,
+        full_name:     r.full_name,
+        activeness_id: actMap[r.id]?.id || null,
+        vocabulary_box: actMap[r.id]?.vocabulary_box || 0,
+        answering:      actMap[r.id]?.answering      || 0,
+        presenting:     actMap[r.id]?.presenting     || 0,
+        task_on_time:   actMap[r.id]?.task_on_time   || 0,
+        helping_hand:   actMap[r.id]?.helping_hand   || 0,
+        quiz:           actMap[r.id]?.quiz           || 0,
+      }));
+
+      renderRows(students);
+    } catch(e) {
       document.getElementById('tbody').innerHTML =
-        `<tr><td colspan="8"><div class="state-msg">No students in this class.</div></td></tr>`;
-      return;
+        `<tr><td colspan="8"><div class="state-msg">Failed to load. Please refresh.</div></td></tr>`;
+      console.error('selectClass:', e);
     }
-
-    // Get activeness
-    const { data: acts } = await db
-      .from('activeness')
-      .select('*')
-      .in('student_id', rows.map(r => r.id));
-
-    const actMap = {};
-    (acts || []).forEach(a => actMap[a.student_id] = a);
-
-    students = rows.map(r => ({
-      id:            r.id,
-      full_name:     r.full_name,
-      activeness_id: actMap[r.id]?.id || null,
-      vocabulary_box: actMap[r.id]?.vocabulary_box || 0,
-      answering:      actMap[r.id]?.answering      || 0,
-      presenting:     actMap[r.id]?.presenting     || 0,
-      task_on_time:   actMap[r.id]?.task_on_time   || 0,
-      helping_hand:   actMap[r.id]?.helping_hand   || 0,
-      quiz:           actMap[r.id]?.quiz           || 0,
-    }));
-
-    renderRows(students);
   }
 
   function renderRows(list) {
@@ -664,7 +673,7 @@
     window.location.href = '/index.html';
   }
 
-  init();
+  init().catch(console.error);
 </script>
 </body>
 </html>

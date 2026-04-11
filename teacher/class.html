@@ -237,7 +237,7 @@ function escHtml(str){
 }
 
 async function handleLogout(){await db.auth.signOut();window.location.href='/index-login.html'}
-init();
+init().catch(console.error);
 </script>
 </body>
 </html>

@@ -566,15 +566,17 @@
 
   async function loadData() {
     setLoading();
-
-    const { data: classRow } = await db.from('classes').select('id').eq('name', currentClass).single();
+    try {
+    const { data: classRow, error: e1 } = await db.from('classes').select('id').eq('name', currentClass).single();
+    if (e1) throw e1;
     if (!classRow) return;
 
-    const { data: rows } = await db
+    const { data: rows, error: e2 } = await db
       .from('students')
       .select('id, full_name')
       .eq('class_id', classRow.id)
       .order('full_name');
+    if (e2) throw e2;
 
     if (!rows || rows.length === 0) {
       setEmpty();
@@ -582,10 +584,11 @@
     }
 
     // Fetch all scores for this class
-    const { data: scoreRows } = await db
+    const { data: scoreRows, error: e3 } = await db
       .from('scores')
       .select('*')
       .in('student_id', rows.map(r => r.id));
+    if (e3) throw e3;
 
     // Build scores map: { student_id -> { chapter+task_number -> { id, score } } }
     scoresMap = {};
@@ -599,6 +602,11 @@
     renderTable(students);
 
     document.getElementById('toolbar-info').textContent = `${rows.length} students`;
+    } catch(e) {
+      setLoading();
+      document.getElementById('tbody').innerHTML = `<tr><td colspan="20"><div class="state-msg">Failed to load. Please refresh.</div></td></tr>`;
+      console.error('loadData:', e);
+    }
   }
 
   function renderTable(list) {
@@ -833,7 +841,7 @@
     window.location.href = '/index-login.html';
   }
 
-  init();
+  init().catch(console.error);
 </script>
 </body>
 </html>
