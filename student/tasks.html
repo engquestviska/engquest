@@ -127,7 +127,7 @@ const SUPABASE_URL='https://unbvljjgiqyphtykbkdb.supabase.co';
 const SUPABASE_KEY='sb_publishable_DFTQJ5niT0OiWVwpeNwM1A_W18mJ1oT';
 const{createClient}=supabase;
 const db=createClient(SUPABASE_URL,SUPABASE_KEY);
-const CHAPTERS={C4:7,C5:5};
+const CHAPTERS={C4:{label:'Chapter 4',tasks:7},C5:{label:'Chapter 5',tasks:5}};
 let myStudent=null,currentChapter='C4',students=[],statusMap={};
 
 async function init(){
@@ -165,7 +165,7 @@ function switchChapter(ch,btn){
 
 function renderMyStatus(){
   const ch=currentChapter;
-  const taskCount=CHAPTERS[ch];
+  const taskCount=CHAPTERS[ch].tasks;
   const tasks=Array.from({length:taskCount},(_,i)=>i+1);
   const done=tasks.filter(t=>statusMap[myStudent.id+'_'+ch+'_'+t]).length;
   const pct=Math.round((done/taskCount)*100);
@@ -181,7 +181,7 @@ function renderMyStatus(){
 
 function renderTable(){
   const ch=currentChapter;
-  const taskCount=CHAPTERS[ch];
+  const taskCount=CHAPTERS[ch].tasks;
   const tasks=Array.from({length:taskCount},(_,i)=>i+1);
 
   // Count class completion

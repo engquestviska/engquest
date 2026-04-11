@@ -143,7 +143,7 @@ const SUPABASE_KEY='sb_publishable_DFTQJ5niT0OiWVwpeNwM1A_W18mJ1oT';
 const{createClient}=supabase;
 const db=createClient(SUPABASE_URL,SUPABASE_KEY);
 const CLASSES=['XE1','XE4','XE5','XE6','XE7','XE8','XE9','XE10','XE11'];
-const CHAPTERS={C4:7,C5:5};
+const CHAPTERS={C4:{label:'Chapter 4',tasks:7},C5:{label:'Chapter 5',tasks:5}};
 let currentClass=null,currentChapter='C4',students=[],statusMap={},submissionsMap={};
 let saveTimer=null;
 const pending=new Set();
@@ -199,7 +199,7 @@ async function loadData(){
 function renderTable(list){
   if(!list.length){setEmpty();return}
   const ch=currentChapter;
-  const taskCount=CHAPTERS[ch];
+  const taskCount=CHAPTERS[ch].tasks;
   const tasks=Array.from({length:taskCount},(_,i)=>i+1);
 
   document.getElementById('thead').innerHTML=`<tr>
@@ -246,7 +246,7 @@ async function toggleTask(sid,ch,task,btn){
   statusMap[key].is_done=newVal;
 
   // Update total
-  const taskCount=CHAPTERS[ch];
+  const taskCount=CHAPTERS[ch].tasks;
   const tasks=Array.from({length:taskCount},(_,i)=>i+1);
   const done=tasks.filter(t=>statusMap[sid+'_'+ch+'_'+t]?.is_done).length;
   const totalEl=document.getElementById('total-'+sid);
@@ -285,7 +285,7 @@ async function syncSubmissions(){
   showToast('Syncing submissions...','saving');
 
   const ch=currentChapter;
-  const taskCount=CHAPTERS[ch];
+  const taskCount=CHAPTERS[ch].tasks;
   const tasks=Array.from({length:taskCount},(_,i)=>i+1);
   let synced=0;
 
