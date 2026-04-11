@@ -519,7 +519,7 @@
 
   async function init() {
     const { data: { user } } = await db.auth.getUser();
-    if (!user) { window.location.href = '/index.html'; return; }
+    if (!user) { window.location.href = '/index-login.html'; return; }
     if (user.user_metadata?.role !== 'teacher') { window.location.href = '/student/dashboard.html'; return; }
 
     const name = user.email.split('@')[0];
@@ -584,7 +584,7 @@
 
   async function handleLogout() {
     await db.auth.signOut();
-    window.location.href = '/index.html';
+    window.location.href = '/index-login.html';
   }
 
   init().catch(console.error);
