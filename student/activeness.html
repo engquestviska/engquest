@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>English Quest — My Activeness</title>
+  <script src="/theme.js"></script>
+  <link rel="stylesheet" href="/shared.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Fraunces:opsz,wght@9..144,700&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--bg:#0c0c0f;--surface:#131317;--surface2:#1a1a20;--border:#222228;--accent:#7c6ffa;--amber:#e8a030;--text:#dddde8;--muted:#5a5a70;--subtle:#2e2e3a;--success:#34d399;--danger:#f87171}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+    nav{position:sticky;top:0;z-index:50;background:rgba(12,12,15,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:52px}
+    .nav-brand{font-size:.88rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+    .nav-links{display:flex;align-items:center;gap:.25rem}
+    .nav-link{padding:.4rem .75rem;border-radius:6px;font-size:.82rem;color:var(--muted);text-decoration:none;transition:color .12s,background .12s;cursor:pointer;border:none;background:none;font-family:'DM Sans',sans-serif}
+    .nav-link:hover,.nav-link.active{color:var(--text);background:var(--surface2)}
+    .nav-user{display:flex;align-items:center;gap:.6rem;padding:.3rem .75rem .3rem .4rem;border-radius:999px;background:var(--surface);border:1px solid var(--border)}
+    .nav-avatar{width:24px;height:24px;border-radius:50%;background:var(--accent);color:white;font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+    .nav-username{font-size:.8rem;font-weight:500}
+    .btn-logout{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.78rem;padding:.2rem .4rem;border-radius:4px;transition:color .12s;font-family:'DM Sans',sans-serif}
+    .btn-logout:hover{color:var(--danger)}
+    .page{max-width:800px;margin:0 auto;padding:2.5rem 2rem 4rem;animation:fadeUp .25s ease both}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .page-label{font-size:.72rem;font-weight:500;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:.4rem}
+    .page-title{font-family:'Fraunces',serif;font-size:1.8rem;font-weight:700;letter-spacing:-.02em;margin-bottom:2rem}
+    .total-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem 2rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+    .total-label{font-size:.72rem;font-weight:500;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+    .total-value{font-size:2.5rem;font-weight:700;color:var(--accent);line-height:1}
+    .rank-badge{font-size:.82rem;color:var(--amber);font-weight:600}
+    .categories{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.75rem;margin-bottom:2rem}
+    .cat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem}
+    .cat-name{font-size:.72rem;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.5rem}
+    .cat-value{font-size:1.5rem;font-weight:700;color:var(--text)}
+    .cat-bar-wrap{margin-top:.5rem;height:3px;background:var(--border);border-radius:999px;overflow:hidden}
+    .cat-bar{height:3px;border-radius:999px;background:var(--accent);transition:width .8s ease}
+    .section-heading{font-size:.72rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+    .rank-table{border:1px solid var(--border);border-radius:10px;overflow:hidden}
+    table{border-collapse:collapse;width:100%}
+    thead{background:var(--surface)}
+    thead th{font-size:.67rem;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:.65rem 1rem;border-bottom:1px solid var(--border);text-align:left}
+    tbody tr{border-bottom:1px solid var(--border);background:var(--surface);transition:background .1s}
+    tbody tr:last-child{border-bottom:none}
+    tbody tr:hover{background:var(--surface2)}
+    tbody tr.is-me{background:rgba(124,111,250,.06)}
+    tbody td{padding:.55rem 1rem;font-size:.84rem}
+    .me-badge{font-size:.6rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);background:rgba(124,111,250,.12);padding:.1rem .4rem;border-radius:999px;margin-left:.4rem}
+    .state-msg{padding:2rem;color:var(--muted);font-size:.84rem;text-align:center}
+    @media(max-width:900px){.nav-links{display:none}}
+    @media(max-width:700px){nav{padding:0 1rem}.page{padding:1.5rem 1rem 3rem}.categories{grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body>
+<nav>
+  <div class="nav-brand">English Quest</div>
+  <div class="nav-links">
+    <a class="nav-link" href="/student/dashboard.html">Dashboard</a>
+    <a class="nav-link" href="/student/tasks.html">Tasks</a>
+    <a class="nav-link" href="/student/submissions.html">Submissions</a>
+    <a class="nav-link active" href="/student/activeness.html">Activeness</a>
+    <a class="nav-link" href="/student/attendance.html">Attendance</a>
+    <button class="nav-btn ghost theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle theme">🌙</button>
+  </div>
+  <div class="nav-actions">
+    <div class="nav-user">
+      <div class="nav-avatar" id="nav-avatar">?</div>
+      <div class="nav-username" id="nav-username">—</div>
+    </div>
+    <button class="btn-logout" onclick="handleLogout()" aria-label="Log out">Sign out</button>
+  </div>
+</nav>
+<div class="page">
+  <div class="page-label">My Performance</div>
+  <div class="page-title">Activeness</div>
+
+  <div class="total-card" id="total-card">
+    <div>
+      <div class="total-label">Total Points</div>
+      <div class="total-value" id="total-pts">—</div>
+    </div>
+    <div style="text-align:right">
+      <div class="total-label">Class Rank</div>
+      <div class="rank-badge" id="rank-badge">—</div>
+    </div>
+  </div>
+
+  <div class="categories" id="categories">
+    <div class="cat-card"><div class="cat-name">Vocabulary Box</div><div class="cat-value" id="c-vb">—</div><div class="cat-bar-wrap"><div class="cat-bar" id="b-vb" style="width:0%"></div></div></div>
+    <div class="cat-card"><div class="cat-name">Answering</div><div class="cat-value" id="c-an">—</div><div class="cat-bar-wrap"><div class="cat-bar" id="b-an" style="width:0%"></div></div></div>
+    <div class="cat-card"><div class="cat-name">Presenting</div><div class="cat-value" id="c-pr">—</div><div class="cat-bar-wrap"><div class="cat-bar" id="b-pr" style="width:0%"></div></div></div>
+    <div class="cat-card"><div class="cat-name">Task On Time</div><div class="cat-value" id="c-tt">—</div><div class="cat-bar-wrap"><div class="cat-bar" id="b-tt" style="width:0%"></div></div></div>
+    <div class="cat-card"><div class="cat-name">Helping Hand</div><div class="cat-value" id="c-hh">—</div><div class="cat-bar-wrap"><div class="cat-bar" id="b-hh" style="width:0%"></div></div></div>
+    <div class="cat-card"><div class="cat-name">Quiz</div><div class="cat-value" id="c-qz">—</div><div class="cat-bar-wrap"><div class="cat-bar" id="b-qz" style="width:0%"></div></div></div>
+  </div>
+
+  <div class="section-heading">Class Ranking</div>
+  <div class="rank-table">
+    <table>
+      <thead><tr><th>#</th><th>Name</th><th>Points</th></tr></thead>
+      <tbody id="rank-tbody"><tr><td colspan="3"><div class="state-msg">Loading...</div></td></tr></tbody>
+    </table>
+  </div>
+</div>
+<script>
+const SUPABASE_URL='https://unbvljjgiqyphtykbkdb.supabase.co';
+const SUPABASE_KEY='sb_publishable_DFTQJ5niT0OiWVwpeNwM1A_W18mJ1oT';
+const{createClient}=supabase;
+const db=createClient(SUPABASE_URL,SUPABASE_KEY);
+const CATS=[
+  {key:'vocabulary_box',id:'vb'},
+  {key:'answering',id:'an'},
+  {key:'presenting',id:'pr'},
+  {key:'task_on_time',id:'tt'},
+  {key:'helping_hand',id:'hh'},
+  {key:'quiz',id:'qz'},
+];
+function total(a){return CATS.reduce((s,c)=>s+(a[c.key]||0),0)}
+
+async function init(){
+  const{data:{user}}=await db.auth.getUser();
+  if(!user){window.location.href='/index-login.html';return}
+  if(user.user_metadata?.role==='teacher'){window.location.href='/teacher/dashboard.html';return}
+
+  const{data:student}=await db.from('students').select('*,classes(name)').eq('user_id',user.id).single();
+  if(!student)return;
+
+  const firstName=student.full_name.split(' ')[0];
+  document.getElementById('nav-avatar').textContent=firstName[0].toUpperCase();
+  document.getElementById('nav-username').textContent=firstName;
+
+  try{
+    const[{data:myAct},{data:classStudents}]=await Promise.all([
+      db.from('activeness').select('*').eq('student_id',student.id).single(),
+      db.from('students').select('id,full_name').eq('class_id',student.class_id),
+    ]);
+
+    const me=myAct||{};
+    const myTotal=total(me);
+    document.getElementById('total-pts').textContent=myTotal;
+
+    const max=Math.max(...CATS.map(c=>me[c.key]||0),1);
+    CATS.forEach(c=>{
+      const v=me[c.key]||0;
+      document.getElementById('c-'+c.id).textContent=v;
+      document.getElementById('b-'+c.id).style.width=Math.round((v/max)*100)+'%';
+    });
+
+    if(classStudents&&classStudents.length>1){
+      const ids=classStudents.map(s=>s.id);
+      const{data:allActs}=await db.from('activeness').select('*').in('student_id',ids);
+      const actMap={};
+      (allActs||[]).forEach(a=>{actMap[a.student_id]=a});
+
+      const ranked=classStudents
+        .map(s=>({...s,pts:total(actMap[s.id]||{})}))
+        .sort((a,b)=>b.pts-a.pts);
+
+      const rank=ranked.findIndex(s=>s.id===student.id)+1;
+      document.getElementById('rank-badge').textContent=`#${rank} of ${ranked.length}`;
+
+      document.getElementById('rank-tbody').innerHTML=ranked.map((s,i)=>`
+        <tr class="${s.id===student.id?'is-me':''}">
+          <td style="color:var(--muted);font-size:.72rem">${String(i+1).padStart(2,'0')}</td>
+          <td>${s.full_name}${s.id===student.id?'<span class="me-badge">You</span>':''}</td>
+          <td style="font-weight:600;color:var(--amber)">${s.pts}</td>
+        </tr>`).join('');
+    }else{
+      document.getElementById('rank-badge').textContent='—';
+      document.getElementById('rank-tbody').innerHTML='<tr><td colspan="3"><div class="state-msg">No ranking data.</div></td></tr>';
+    }
+  }catch(e){
+    document.getElementById('rank-tbody').innerHTML='<tr><td colspan="3"><div class="state-msg">Failed to load. Please refresh.</div></td></tr>';
+    console.error('init:',e);
+  }
+}
+async function handleLogout(){await db.auth.signOut();window.location.href='/index-login.html'}
+init().catch(console.error);
+</script>
+</body>
+</html>
