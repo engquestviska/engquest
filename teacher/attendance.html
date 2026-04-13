@@ -155,7 +155,7 @@ const pending=new Set();
 async function init(){
   const{data:{user}}=await db.auth.getUser();
   if(!user){window.location.href='/index-login.html';return}
-  if(user.user_metadata?.role!=='teacher'){window.location.href='/index.html';return}
+  if(user.user_metadata?.role!=='teacher'){window.location.href='/student/dashboard.html';return}
   teacherId=user.id;
   const name=user.email.split('@')[0];
   document.getElementById('user-name').textContent=name;
