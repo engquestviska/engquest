@@ -188,6 +188,8 @@ const db=createClient(SUPABASE_URL,SUPABASE_KEY);
 const CLASSES=['XE1','XE4','XE5','XE6','XE7','XE8','XE9','XE10','XE11'];
 let selectedType='info';
 let selectedClasses=new Set(CLASSES);
+let currentAnnId=null;
+let currentSummId=null;
 
 async function init(){
   const{data:{user}}=await db.auth.getUser();
@@ -217,7 +219,8 @@ function toggleClass(cls,btn){
 }
 
 async function loadAnnouncement(){
-  const{data}=await db.from('announcements').select('*').order('posted_at',{ascending:false}).limit(1).single();
+  const{data}=await db.from('announcements').select('*').order('posted_at',{ascending:false}).limit(1).maybeSingle();
+  currentAnnId=data?.id||null;
   const wrap=document.getElementById('current-ann-wrap');
   if(!data){wrap.innerHTML='<div class="empty-state">No active announcement.</div>';return}
   const typeColors={info:'#7c6ffa',warning:'#e8a030',success:'#34d399',urgent:'#f87171'};
@@ -234,7 +237,8 @@ async function loadAnnouncement(){
 }
 
 async function loadSummative(){
-  const{data}=await db.from('summative').select('*').order('updated_at',{ascending:false}).limit(1).single();
+  const{data}=await db.from('summative').select('*').order('updated_at',{ascending:false}).limit(1).maybeSingle();
+  currentSummId=data?.id||null;
   const wrap=document.getElementById('current-summ-wrap');
   if(!data){wrap.innerHTML='<div class="empty-state">No summative info set.</div>';return}
   wrap.innerHTML=`<div class="current-ann">
@@ -257,14 +261,15 @@ async function postAnnouncement(){
   const body=document.getElementById('ann-body').value.trim();
   if(!title&&!body){showToast('Please enter a title or message','error');return}
   const{data:{user}}=await db.auth.getUser();
-  await db.from('announcements').delete().neq('id','00000000-0000-0000-0000-000000000000');
+  if(currentAnnId) await db.from('announcements').delete().eq('id',currentAnnId);
   await db.from('announcements').insert({title,body,type:selectedType,posted_by:user.id});
   await loadAnnouncement();
   showToast('Announcement posted!','success');
 }
 
 async function clearAnnouncement(){
-  await db.from('announcements').delete().neq('id','00000000-0000-0000-0000-000000000000');
+  if(currentAnnId) await db.from('announcements').delete().eq('id',currentAnnId);
+  currentAnnId=null;
   document.getElementById('ann-title').value='';
   document.getElementById('ann-body').value='';
   document.getElementById('current-ann-wrap').innerHTML='<div class="empty-state">No active announcement.</div>';
@@ -276,14 +281,15 @@ async function postSummative(){
   const title=document.getElementById('summ-title').value.trim();
   const study=document.getElementById('summ-study').value.trim();
   if(!date||!title){showToast('Please fill in date and title','error');return}
-  await db.from('summative').delete().neq('id','00000000-0000-0000-0000-000000000000');
+  if(currentSummId) await db.from('summative').delete().eq('id',currentSummId);
   await db.from('summative').insert({title,exam_date:date,study_notes:study,classes:[...selectedClasses]});
   await loadSummative();
   showToast('Summative published!','success');
 }
 
 async function clearSummative(){
-  await db.from('summative').delete().neq('id','00000000-0000-0000-0000-000000000000');
+  if(currentSummId) await db.from('summative').delete().eq('id',currentSummId);
+  currentSummId=null;
   document.getElementById('summ-date').value='';
   document.getElementById('summ-title').value='';
   document.getElementById('summ-study').value='';
