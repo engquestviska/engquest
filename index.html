@@ -1011,6 +1011,13 @@ async function handleLogout() {
   window.location.href = '/index-login.html';
 }
 
+document.addEventListener('keydown', async function(e) {
+  if (e.key !== 'Enter') return;
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'BUTTON' || e.target.tagName === 'A') return;
+  const { data: { user } } = await db.auth.getUser();
+  if (!user) window.location.href = '/index-login.html';
+});
+
 async function loadStrikeBoard() {
   const { data: strikes } = await db
     .from('strikes')
