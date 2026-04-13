@@ -19,6 +19,16 @@
   padding: .4rem .6rem;
 }
 
+/* ── Brand/wordmark as homepage link ── */
+a.nav-brand, a.wordmark {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+a.nav-brand:hover, a.wordmark:hover {
+  opacity: .75;
+}
+
 /* ── Nav actions row (replaces inline flex divs) ── */
 .nav-actions {
   display: flex;
